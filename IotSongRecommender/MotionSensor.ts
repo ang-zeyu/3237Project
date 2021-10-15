@@ -17,6 +17,10 @@ export class TrainMotionData {
 
   id = new Date().toDateString();
 
+  // Likely unneeded
+  // Originally thought of sending motion training data in batches of 100 in case of memory-constraints
+  // 9.7 bytes (average double in javascript) * 6 sensors * 10 numbers per second * 60 seconds * 10 minutes = 349200 bytes = 349kb
+  // Should be fine.
   async sendIntermediate() {
     const body = {
       id: this.id,

@@ -1,6 +1,5 @@
 import constants from './constants';
-import BleManager from 'react-native-ble-manager';
-import {ble, bleEmitter, EVENTS} from './Ble';
+import {bleEmitter, EVENTS} from './Ble';
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR} = constants;
 
 export function createCharacteristicUpdateListener(
@@ -27,6 +26,7 @@ export function createCharacteristicUpdateListener(
       case MOTION_SENSOR.DATA_UUID: {
         // motion sensor message is 18 bytes, so + 18
         // startNotificationUseBuffer strangely appends 20 bytes (MTU) of zeros to the back; discard it
+        // Refer to the .py provided by prof for other details
         const end = data.value.length - 20;
         for (let i = 0; i < end; i += 18) {
           const gyroX =
@@ -53,7 +53,7 @@ export function createCharacteristicUpdateListener(
         break;
       }
       case OPTICAL_SENSOR.DATA_UUID: {
-        // Refer to the .py
+        // Refer to the .py provided by prof
         const rawValue = data.value[0] + (data.value[1] << 8);
 
         const mantissa = rawValue & 0xfff;
@@ -64,7 +64,7 @@ export function createCharacteristicUpdateListener(
         break;
       }
       case HUMIDITY_SENSOR.DATA_UUID: {
-        // Refer to the .py
+        // Refer to the .py provided by prof
         const rawTempValue = data.value[0] + (data.value[1] << 8);
         const rawHumidtyValue = data.value[2] + (data.value[3] << 8);
 

@@ -1,13 +1,7 @@
-import {TrainMotionData} from './MotionSensor';
-import {SongData} from './SongSensor';
-import {Button, SafeAreaView, StyleSheet, Text, View} from 'react-native';
+import {Button, SafeAreaView, Text, View} from 'react-native';
 import React, {useState} from 'react';
 import MusicChooser, {Song} from './MusicChooser';
-import {
-  useTrackPlayerEvents,
-  Event,
-  STATE_PLAYING,
-} from 'react-native-track-player';
+
 import TrackPlayer from 'react-native-track-player';
 
 export default function Player(props: {
@@ -66,34 +60,3 @@ export default function Player(props: {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    fontSize: 12,
-  },
-  flatButton: {
-    height: 50,
-    justifyContent: 'center',
-    backgroundColor: '#94ec9b',
-  },
-  flatButtonText: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  debugContainer: {
-    backgroundColor: '#fceebf',
-    padding: 10,
-  },
-  debugTitle: {
-    fontSize: 18,
-    color: 'red',
-  },
-  debugTitleActive: {
-    color: 'green',
-  },
-  debugInfo: {
-    fontSize: 14,
-  },
-});

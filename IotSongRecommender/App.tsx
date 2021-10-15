@@ -1,11 +1,4 @@
-import {
-  Button,
-  Platform,
-  Pressable,
-  SafeAreaView,
-  StatusBar,
-  StyleSheet,
-} from 'react-native';
+import {Platform, StatusBar} from 'react-native';
 import React from 'react';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -77,6 +70,7 @@ class App extends React.Component<
   // https://github.com/voximplant/react-native-foreground-service-demo/blob/master/App.js
   // See android official documentation https://developer.android.com/guide/components/services
   // for details on foreground services
+  // This is to keep BLE running while we train on motion data
   async startService() {
     if (Platform.OS !== 'android') {
       console.log('Only Android platform is supported');
@@ -185,36 +179,5 @@ class App extends React.Component<
 }
 
 const Tab = createBottomTabNavigator();
-
-const styles = StyleSheet.create({
-  root: {
-    fontSize: 12,
-  },
-  flatButton: {
-    height: 50,
-    justifyContent: 'center',
-    backgroundColor: '#94ec9b',
-  },
-  flatButtonText: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  debugContainer: {
-    backgroundColor: '#fceebf',
-    padding: 10,
-  },
-  debugTitle: {
-    fontSize: 18,
-    color: 'red',
-  },
-  debugTitleActive: {
-    color: 'green',
-  },
-  debugInfo: {
-    fontSize: 14,
-  },
-});
 
 export default App;

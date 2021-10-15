@@ -12,13 +12,12 @@ import {
   Text,
   View,
 } from 'react-native';
-import React, {useState} from 'react';
+import React from 'react';
 import MusicChooser, {Song} from './MusicChooser';
 import {createCharacteristicUpdateListener} from './Sensor';
 import {bleEmitter, EVENTS} from './Ble';
 import TrackPlayer, {Event} from 'react-native-track-player';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import * as Events from 'events';
 
 export default class Training extends React.Component<
   {
@@ -76,13 +75,6 @@ export default class Training extends React.Component<
       container.accelX.push(accelX);
       container.accelY.push(accelY);
       container.accelZ.push(accelZ);
-
-      if (
-        this.state.trainMotionData &&
-        this.state.trainMotionData.gyroX.length >= 100
-      ) {
-        this.state.trainMotionData.sendIntermediate();
-      }
     }
   };
 
@@ -180,6 +172,7 @@ export default class Training extends React.Component<
     });
   };
 
+  // Really rough sketch / tbd, pending consult
   randomPickSongAndPlay = async () => {
     // Gather IOT data
     this.props.showLoader(async () => {
