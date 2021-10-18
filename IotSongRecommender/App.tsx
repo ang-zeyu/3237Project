@@ -106,6 +106,7 @@ class App extends React.Component<
   connect() {
     this.showSpinner();
     ble.scan([], 3).then(() => console.log('Scan started'));
+    setTimeout(() => this.hideSpinner(), 3000);
   }
 
   showSpinner = (cb: any = () => {}) => {
