@@ -1,4 +1,4 @@
-import {Platform, StatusBar} from 'react-native';
+import { Platform, Pressable, StatusBar, Text, View } from "react-native";
 import React from 'react';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';

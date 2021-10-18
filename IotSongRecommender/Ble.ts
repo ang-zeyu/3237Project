@@ -7,6 +7,11 @@ const BleManagerModule = NativeModules.BleManager;
 export const bleEmitter = new NativeEventEmitter(BleManagerModule);
 export const ble = BleManager;
 
+/*
+ BehaviourSubject is just the multiple subscriber - multiple producer pattern
+ - subject.next(val) produces the value
+ - subject.subscribe((val) => { ... }) performs some code on receiving that new / initial value
+ */
 export const peripheralId = new BehaviorSubject<string | undefined>(undefined);
 
 async function connectTo(peripheral: any) {

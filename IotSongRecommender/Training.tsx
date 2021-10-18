@@ -240,6 +240,10 @@ export default class Training extends React.Component<
     return (
       <SafeAreaView style={this.props.style}>
         <View style={this.props.style}>
+          {/*
+           Connect button
+           minor TODO extract this to App.tsx for better separation?
+          */}
           <View>
             <Pressable
               onPress={this.props.scan}
@@ -255,6 +259,8 @@ export default class Training extends React.Component<
               </Text>
             </Pressable>
           </View>
+
+          {/* Start or Stop training motion button */}
           <View style={{padding: 10}}>
             {this.state.trainMotionData ? (
               <Button
@@ -270,6 +276,8 @@ export default class Training extends React.Component<
               />
             )}
           </View>
+
+          {/* Debug button for testing gathering a short burst of data */}
           <View style={{padding: 10}}>
             <Button
               title={'Test Gather Song Data'}
@@ -281,12 +289,15 @@ export default class Training extends React.Component<
               }
             />
           </View>
+
+          {/* TODO Start song training button. Only available after songs are loaded from below choose folder button */}
           <View style={{padding: 10}}>
             <Button
               title={'Train Songs'}
-              onPress={this.testGatherSongData}
+              onPress={this.startMotionTraining}
               disabled={!this.state.musicUris.length}
             />
+            {/* TODO Skip song button. Only available after song training is started. */}
             <View style={styles.musicControlsContainer}>
               <Pressable
                 style={({pressed}) => [
@@ -303,6 +314,7 @@ export default class Training extends React.Component<
             </View>
           </View>
 
+          {/* Debug information on sensors */}
           <View style={styles.debugContainer}>
             {this.state.trainSongData || this.state.trainMotionData ? (
               <React.Fragment>
@@ -330,6 +342,7 @@ export default class Training extends React.Component<
             )}
           </View>
 
+          {/* Choose folder button */}
           {this.props.id && !this.state.trainMotionData && (
             <MusicChooser
               showLoader={this.props.showLoader}
