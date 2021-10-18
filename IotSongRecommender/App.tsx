@@ -9,13 +9,13 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import VIForegroundService from '@voximplant/react-native-foreground-service';
 
-import {ble, bleEmitter, EVENTS, peripheralId} from './Ble';
+import {ble, bleEmitter, EVENTS, peripheralId} from './utils/Ble';
 
 import {Subscription} from 'rxjs/dist/types';
 import {NavigationContainer} from '@react-navigation/native';
-import Training from './Training';
+import Training from './screens/Training';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Player from './Player';
+import Player from './screens/Player';
 
 class App extends React.Component<
   {},

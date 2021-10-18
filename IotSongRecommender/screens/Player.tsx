@@ -1,6 +1,6 @@
 import {Button, SafeAreaView, Text, View} from 'react-native';
 import React, {useState} from 'react';
-import MusicChooser, {Song} from './MusicChooser';
+import MusicChooser, {Song} from '../components/MusicChooser';
 
 import TrackPlayer from 'react-native-track-player';
 

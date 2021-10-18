@@ -1,6 +1,6 @@
 import {ble} from './Ble';
 
-import constants from './constants';
+import constants from '../constants';
 const {MOTION_SENSOR} = constants;
 
 

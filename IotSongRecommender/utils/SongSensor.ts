@@ -3,7 +3,7 @@
  */
 import {ble} from './Ble';
 
-import constants from './constants';
+import constants from '../constants';
 import {configureMotionSensors, stopMotionSensors} from './MotionSensor';
 import {createCharacteristicUpdateListener} from './Sensor';
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR} = constants;

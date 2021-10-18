@@ -2,8 +2,8 @@ import {
   configureMotionSensors,
   stopMotionSensors,
   TrainMotionData,
-} from './MotionSensor';
-import {SongData, gatherSongData} from './SongSensor';
+} from '../utils/MotionSensor';
+import {SongData, gatherSongData} from '../utils/SongSensor';
 import {
   Button,
   Pressable,
@@ -13,9 +13,9 @@ import {
   View,
 } from 'react-native';
 import React from 'react';
-import MusicChooser, {Song} from './MusicChooser';
-import {createCharacteristicUpdateListener} from './Sensor';
-import {bleEmitter, EVENTS} from './Ble';
+import MusicChooser, {Song} from '../components/MusicChooser';
+import {createCharacteristicUpdateListener} from '../utils/Sensor';
+import {bleEmitter, EVENTS} from '../utils/Ble';
 import TrackPlayer, {Event} from 'react-native-track-player';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 

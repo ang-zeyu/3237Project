@@ -1,4 +1,4 @@
-import constants from './constants';
+import constants from '../constants';
 import {bleEmitter, EVENTS} from './Ble';
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR} = constants;
 
