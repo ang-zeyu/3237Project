@@ -22,7 +22,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 export default class Training extends React.Component<
   {
     style: {backgroundColor: any};
-    scan: () => void;
     id: string | undefined;
     startService: () => Promise<void>;
     stopService: () => Promise<void>;
@@ -240,25 +239,6 @@ export default class Training extends React.Component<
     return (
       <SafeAreaView style={this.props.style}>
         <View style={this.props.style}>
-          {/*
-           Connect button
-           minor TODO extract this to App.tsx for better separation?
-          */}
-          <View>
-            <Pressable
-              onPress={this.props.scan}
-              disabled={!!this.props.id}
-              style={({pressed}) => [
-                styles.flatButton,
-                (pressed && {backgroundColor: '#38ee46'}) || {},
-                (this.props.id && {backgroundColor: '#d5ded7'}) || {},
-              ]}
-              android_ripple={{color: 'lightblue'}}>
-              <Text style={styles.flatButtonText}>
-                {this.props.id || 'Connect'}
-              </Text>
-            </Pressable>
-          </View>
 
           {/* Start or Stop training motion button */}
           <View style={{padding: 10}}>

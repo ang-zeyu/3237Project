@@ -6,7 +6,6 @@ import TrackPlayer from 'react-native-track-player';
 
 export default function Player(props: {
   style: {backgroundColor: any};
-  scan: () => void;
   id: string | undefined;
   isTraining: boolean;
   showLoader: (cb?: any) => void;

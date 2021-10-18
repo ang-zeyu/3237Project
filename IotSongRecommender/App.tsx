@@ -1,4 +1,4 @@
-import { Platform, Pressable, StatusBar, Text, View } from "react-native";
+import {Platform, StatusBar} from 'react-native';
 import React from 'react';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -16,6 +16,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Training from './screens/Training';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Player from './screens/Player';
+import ConnectButton from './components/ConnectButton';
 
 class App extends React.Component<
   {},
@@ -103,12 +104,6 @@ class App extends React.Component<
     await VIForegroundService.stopService();
   }
 
-  connect() {
-    this.showSpinner();
-    ble.scan([], 3).then(() => console.log('Scan started'));
-    setTimeout(() => this.hideSpinner(), 3000);
-  }
-
   showSpinner = (cb: any = () => {}) => {
     this.setState({showSpinner: true}, cb);
   };
@@ -150,22 +145,27 @@ class App extends React.Component<
           })}>
           <Tab.Screen name={'Training'}>
             {() => (
-              <Training
-                style={this.backgroundStyle}
-                scan={() => this.connect()}
-                id={this.state.id}
-                startService={this.startService}
-                stopService={this.stopService}
-                showLoader={this.showSpinner}
-                hideLoader={this.hideSpinner}
-              />
+              <React.Fragment>
+                <ConnectButton
+                  id={this.state.id}
+                  showLoader={this.showSpinner}
+                  hideLoader={this.hideSpinner}
+                />
+                <Training
+                  style={this.backgroundStyle}
+                  id={this.state.id}
+                  startService={this.startService}
+                  stopService={this.stopService}
+                  showLoader={this.showSpinner}
+                  hideLoader={this.hideSpinner}
+                />
+              </React.Fragment>
             )}
           </Tab.Screen>
           <Tab.Screen name={'Player'}>
             {() => (
               <Player
                 style={this.backgroundStyle}
-                scan={() => this.connect()}
                 id={this.state.id}
                 isTraining={this.state.isTraining}
                 showLoader={this.showSpinner}
