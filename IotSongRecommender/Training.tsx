@@ -18,6 +18,7 @@ import {createCharacteristicUpdateListener} from './Sensor';
 import {bleEmitter, EVENTS} from './Ble';
 import TrackPlayer, {Event} from 'react-native-track-player';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ModalDropdown from 'react-native-modal-dropdown';
 
 export default class Training extends React.Component<
   {
@@ -39,6 +40,7 @@ export default class Training extends React.Component<
       optical: string;
       humidity: string;
     };
+    activity: string,
   }
 > {
   constructor(props: any) {
@@ -52,8 +54,11 @@ export default class Training extends React.Component<
         optical: '',
         humidity: '',
       },
+      activity: 'Walking',
     };
   }
+
+  activity_list = ['Walking', 'Running', 'Lying Down', 'Working']
 
   processMotionData = (
     gyroX: number,
@@ -236,6 +241,10 @@ export default class Training extends React.Component<
     });
   };
 
+  selectPhysicalActivity = (index:string, option:string) => {
+    this.setState({ activity: option })
+  }
+
   render() {
     return (
       <SafeAreaView style={this.props.style}>
@@ -269,6 +278,9 @@ export default class Training extends React.Component<
                 disabled={!this.props.id || !!this.state.trainSongData}
               />
             )}
+          </View>
+          <View style={{padding: 10}}>
+            <ModalDropdown options={this.activity_list} onSelect={this.selectPhysicalActivity} dropdownStyle={{ width: '80%' }} />
           </View>
           <View style={{padding: 10}}>
             <Button
