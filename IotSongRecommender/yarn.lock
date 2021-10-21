@@ -1406,7 +1406,15 @@
   "resolved" "https://registry.npmjs.org/@types/prop-types/-/prop-types-15.7.4.tgz"
   "version" "15.7.4"
 
-"@types/react-native@^0.65.0":
+"@types/react-native-modal-dropdown@^0.7.1":
+  "integrity" "sha512-2fN192/Vu224senlQGqdn5k3sH2jzCHdDLhBa1FQyoXhid80POVdKDgzlOhPJ/CjirAMq7Wqh0OCL4tTw70IvQ=="
+  "resolved" "https://registry.npmjs.org/@types/react-native-modal-dropdown/-/react-native-modal-dropdown-0.7.1.tgz"
+  "version" "0.7.1"
+  dependencies:
+    "@types/react" "*"
+    "@types/react-native" "*"
+
+"@types/react-native@*", "@types/react-native@^0.65.0":
   "integrity" "sha512-lc2JVmqVIkFmEtUHX8jCkuepqRSzlhRPBIlVFVc0hgfoUxvntrORhmK7LCnAbHfmpUqVVGhMjax27CCTACQ2Kw=="
   "resolved" "https://registry.npmjs.org/@types/react-native/-/react-native-0.65.5.tgz"
   "version" "0.65.5"
@@ -5703,7 +5711,7 @@
     "kleur" "^3.0.3"
     "sisteransi" "^1.0.5"
 
-"prop-types@^15.6.2", "prop-types@^15.7.2":
+"prop-types@^15.6.0", "prop-types@^15.6.2", "prop-types@^15.7.2":
   "integrity" "sha512-8QQikdH7//R2vurIJSutZ1smHYTcLpRWEOlHnzcWHmBYrOGUysKwSsrC89BCiFj3CbrfJ/nXFdJepOVrY1GCHQ=="
   "resolved" "https://registry.npmjs.org/prop-types/-/prop-types-15.7.2.tgz"
   "version" "15.7.2"
@@ -5795,6 +5803,13 @@
   "version" "2.0.0"
   dependencies:
     "prop-types" "^15.6.2"
+
+"react-native-modal-dropdown@^1.0.2":
+  "integrity" "sha512-X13RbwoQdaOb9Ffi7fjRVwh9OXauXIJhum0uXGzYZLMyoCQ5yt5cxf27P/YZbdh80Fb7bdPx6vTA4PTpUK2WDQ=="
+  "resolved" "https://registry.npmjs.org/react-native-modal-dropdown/-/react-native-modal-dropdown-1.0.2.tgz"
+  "version" "1.0.2"
+  dependencies:
+    "prop-types" "^15.6.0"
 
 "react-native-safe-area-context@^3.3.2", "react-native-safe-area-context@>= 3.0.0":
   "integrity" "sha512-yOwiiPJ1rk+/nfK13eafbpW6sKW0jOnsRem2C1LPJjM3tfTof6hlvV5eWHATye3XOpu2cJ7N+HdkUvUDGwFD2Q=="
