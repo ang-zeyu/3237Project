@@ -30,7 +30,7 @@ export default class Training extends React.Component<
     hideLoader: (cb?: any) => void;
   },
   {
-    musicUris: Song[];
+    trainingSongs: Song[];
     trainSongData?: SongData;
     trainMotionData?: TrainMotionData;
 
@@ -39,13 +39,13 @@ export default class Training extends React.Component<
       optical: string;
       humidity: string;
     };
-    activity: string,
+    activity: string;
   }
 > {
   constructor(props: any) {
     super(props);
     this.state = {
-      musicUris: [],
+      trainingSongs: [],
       trainSongData: undefined,
       trainMotionData: undefined,
       motionSensorText: '',
@@ -57,7 +57,7 @@ export default class Training extends React.Component<
     };
   }
 
-  activity_list = ['Walking', 'Running', 'Lying Down', 'Working']
+  activity_list = ['Walking', 'Running', 'Lying Down', 'Working'];
 
   processMotionData = (
     gyroX: number,
@@ -197,8 +197,8 @@ export default class Training extends React.Component<
         bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
 
         // Randomise, see what action user takes...
-        const randIdx = Math.floor(Math.random() * this.state.musicUris.length);
-        const song = this.state.musicUris[randIdx];
+        const randIdx = Math.floor(Math.random() * this.state.trainingSongs.length);
+        const song = this.state.trainingSongs[randIdx];
 
         await TrackPlayer.add(song);
         await TrackPlayer.play();
@@ -240,15 +240,14 @@ export default class Training extends React.Component<
     });
   };
 
-  selectPhysicalActivity = (index:string, option:string) => {
-    this.setState({ activity: option })
-  }
+  selectPhysicalActivity = (index: string, option: string) => {
+    this.setState({activity: option});
+  };
 
   render() {
     return (
       <SafeAreaView style={this.props.style}>
         <View style={this.props.style}>
-
           {/* Start or Stop training motion button */}
           <View style={{padding: 10}}>
             {this.state.trainMotionData ? (
@@ -268,7 +267,11 @@ export default class Training extends React.Component<
 
           {/* Debug button for testing gathering a short burst of data */}
           <View style={{padding: 10}}>
-            <ModalDropdown options={this.activity_list} onSelect={this.selectPhysicalActivity} dropdownStyle={{ width: '80%' }} />
+            <ModalDropdown
+              options={this.activity_list}
+              onSelect={this.selectPhysicalActivity}
+              dropdownStyle={{width: '80%'}}
+            />
           </View>
           <View style={{padding: 10}}>
             <Button
@@ -286,8 +289,8 @@ export default class Training extends React.Component<
           <View style={{padding: 10}}>
             <Button
               title={'Train Songs'}
-              onPress={this.startMotionTraining}
-              disabled={!this.state.musicUris.length}
+              onPress={this.startSongTraining}
+              disabled={!this.state.trainingSongs.length}
             />
             {/* TODO Skip song button. Only available after song training is started. */}
             <View style={styles.musicControlsContainer}>
@@ -339,8 +342,8 @@ export default class Training extends React.Component<
             <MusicChooser
               showLoader={this.props.showLoader}
               hideLoader={this.props.hideLoader}
-              musicUris={this.state.musicUris}
-              setMusicUris={(musicUris: Song[]) => this.setState({musicUris})}
+              musicUris={this.state.trainingSongs}
+              setMusicUris={(musicUris: Song[]) => this.setState({trainingSongs: musicUris})}
             />
           )}
         </View>
