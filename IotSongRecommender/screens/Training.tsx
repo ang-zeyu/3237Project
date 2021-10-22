@@ -22,6 +22,7 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModalDropdown from 'react-native-modal-dropdown';
+import SongTitleToMoodJSON from '../utils/SongToMood.json'
 
 export default class Training extends React.Component<
   {
@@ -213,10 +214,12 @@ export default class Training extends React.Component<
           const MINIMUM_PROPORTION = 0.5;
           if (proportionPlayed >= MINIMUM_PROPORTION) {
             console.log('Sending prev played song data...');
-            await this.state.trainSongData.send(); // TODO send up the mood also
+            const mood = SongTitleToMoodJSON['Fire']; //send a dummy mood, replace with song title 
+            await this.state.trainSongData.send(mood); // TODO send up the mood also
           } else {
             console.log('Sending prev skipped song data...');
-            await this.state.trainSongData.send(); // TODO send up the mood also
+            const mood = SongTitleToMoodJSON['Fire']; //send a dummy mood, replace with song title
+            await this.state.trainSongData.send(mood); // TODO send up the mood also
           }
         }
 
