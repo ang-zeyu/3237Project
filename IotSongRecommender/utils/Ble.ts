@@ -33,6 +33,7 @@ async function connectTo(peripheral: any) {
     console.log('Error retrieving CC2650 services');
     await ble.disconnect(peripheral.id);
   }
+  bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
 
   await ble.stopScan();
 }
@@ -47,6 +48,12 @@ export async function setup() {
   return BleManager.start({})
     .then(async () => {
       isInitialised = true;
+
+      bleEmitter.removeAllListeners(EVENTS.CONNECTED);
+      bleEmitter.removeAllListeners(EVENTS.DISCONNECTED);
+      bleEmitter.removeAllListeners(EVENTS.DISCOVER);
+      bleEmitter.removeAllListeners(EVENTS.STOP_SCAN);
+      bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
 
       bleEmitter.addListener(EVENTS.CONNECTED, ({peripheral}) => {
         console.log(`Peripheral ${peripheral} connected!`);

@@ -43,8 +43,15 @@ export class SongData {
   }
 }
 
+let numUsages = 0;
+
 async function configureSongSensors(sensorId: string) {
   if (!sensorId) {
+    return;
+  }
+
+  numUsages += 1;
+  if (numUsages > 1) {
     return;
   }
 
@@ -78,6 +85,11 @@ async function configureSongSensors(sensorId: string) {
 
 async function stopSongSensors(sensorId: string) {
   if (!sensorId) {
+    return;
+  }
+
+  numUsages -= 1;
+  if (numUsages > 0) {
     return;
   }
 
@@ -118,7 +130,8 @@ export async function gatherSongData(
         try {
           await stopSongDataGathering(sensorId);
         } catch (e) {
-          reject(e);
+          console.error(e);
+          resolve();
         }
 
         resolve();

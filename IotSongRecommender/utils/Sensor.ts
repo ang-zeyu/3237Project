@@ -1,5 +1,6 @@
 import constants from '../constants';
 import {bleEmitter, EVENTS} from './Ble';
+import { EmitterSubscription } from "react-native";
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR} = constants;
 
 export function createCharacteristicUpdateListener(
@@ -13,7 +14,7 @@ export function createCharacteristicUpdateListener(
   ) => void,
   processOpticalData: (val: number) => void,
   processHumidityData: (temp: number, humidity: number) => void,
-) {
+): EmitterSubscription {
   function handleCharacteristicUpdate(data: {
     value: any;
     peripheral: string;
@@ -77,5 +78,5 @@ export function createCharacteristicUpdateListener(
     }
   }
 
-  bleEmitter.addListener(EVENTS.CHAR_UPDATE, handleCharacteristicUpdate);
+  return bleEmitter.addListener(EVENTS.CHAR_UPDATE, handleCharacteristicUpdate);
 }

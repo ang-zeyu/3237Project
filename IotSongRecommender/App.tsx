@@ -52,10 +52,6 @@ class App extends React.Component<
           id,
           showSpinner: false,
         });
-
-        if (!id) {
-          bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
-        }
       },
     );
 

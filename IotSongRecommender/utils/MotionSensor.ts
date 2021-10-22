@@ -67,7 +67,14 @@ export class TrainMotionData {
   }
 }
 
+let numUsages = 0;
+
 export async function configureMotionSensors(sensorId: string) {
+  numUsages += 1;
+  if (numUsages > 1) {
+    return;
+  }
+
   // Set listeners
   await ble.write(
     sensorId,
@@ -103,6 +110,11 @@ export async function configureMotionSensors(sensorId: string) {
 
 export async function stopMotionSensors(sensorId: string) {
   if (!sensorId) {
+    return;
+  }
+
+  numUsages -= 1;
+  if (numUsages > 0) {
     return;
   }
 

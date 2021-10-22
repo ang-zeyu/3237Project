@@ -35,8 +35,10 @@ export default class Training extends React.Component<
   {
     trainingSongs: Song[];
     trainingCurrPlaylist: Song[];
-    trainingEventSub?: EmitterSubscription;
+    trainSongPlayerEventSub?: EmitterSubscription;
     trainSongData?: SongData;
+
+    trainMotionCharSub?: EmitterSubscription;
     trainMotionData?: TrainMotionData;
 
     motionSensorText: string;
@@ -66,7 +68,8 @@ export default class Training extends React.Component<
   activity_list = ['Walking', 'Running', 'Lying Down', 'Working'];
 
   componentWillUnmount() {
-    this.state.trainingEventSub?.remove();
+    this.state.trainSongPlayerEventSub?.remove();
+    this.state.trainMotionCharSub?.remove();
   }
 
   processMotionData = (
@@ -97,13 +100,14 @@ export default class Training extends React.Component<
       try {
         await configureMotionSensors(this.props.id as string);
 
-        createCharacteristicUpdateListener(
+        const trainMotionCharSub = createCharacteristicUpdateListener(
           this.processMotionData,
           () => {},
           () => {},
         );
 
         this.props.hideLoader();
+        this.setState({trainMotionCharSub});
       } catch (e) {
         this.props.hideLoader();
         this.setState({trainMotionData: undefined});
@@ -116,24 +120,28 @@ export default class Training extends React.Component<
   };
 
   stopMotionTraining = async () => {
-    const trainMotionData = this.state.trainMotionData;
+    const {trainMotionData, trainMotionCharSub} = this.state;
     if (!trainMotionData) {
       return;
     }
 
-    await this.props.stopService();
-    bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
-
-    const callback = async () => {
-      await stopMotionSensors(this.props.id as string);
-
-      await trainMotionData.send(this.state.activity);
-
-      this.props.hideLoader();
-    };
+    await this.props.stopService(); // stop foreground service
+    trainMotionCharSub?.remove();
 
     this.props.showLoader();
-    this.setState({trainMotionData: undefined}, callback);
+    this.setState(
+      {
+        trainMotionData: undefined,
+        trainMotionCharSub: undefined,
+      },
+      async () => {
+        await stopMotionSensors(this.props.id as string);
+
+        await trainMotionData.send(this.state.activity);
+
+        this.props.hideLoader();
+      },
+    );
   };
 
   processHumidityData = (temp: number, humidity: number) => {
@@ -163,36 +171,37 @@ export default class Training extends React.Component<
     }
   };
 
-  gatherSongBurst: (doReset?: boolean) => Promise<SongData> = (
-    doReset = true,
-  ) => {
+  testGatherSongData = async () => {
+    await this.gatherSongBurst();
+    this.setState({trainSongData: undefined});
+  };
+
+  gatherSongBurst: () => Promise<void> = () => {
     return new Promise(resolve => {
       this.props.showLoader(async () => {
+        console.log('Gathering song data...');
         const countdown = await gatherSongData(this.props.id as string);
 
-        createCharacteristicUpdateListener(
+        const trainSongCharSub = createCharacteristicUpdateListener(
           this.processMotionData,
           this.processOpticalData,
           this.processHumidityData,
         );
 
-        const songData = new SongData();
-        this.setState({trainSongData: songData}, async () => {
+        const trainSongData = new SongData();
+        this.setState({trainSongData}, async () => {
           await countdown();
 
-          if (doReset) {
-            this.setState({trainSongData: undefined});
-          }
           this.props.hideLoader();
-          bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
+          trainSongCharSub.remove();
+          console.log('Gathered song data...');
 
-          resolve(songData);
+          resolve();
         });
       });
     });
   };
 
-  // Really rough sketch / tbd, pending consult
   startSongTraining = async () => {
     // -------------------------------------------------------------------------
     await TrackPlayer.reset();
@@ -215,7 +224,7 @@ export default class Training extends React.Component<
     // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
-    const trainingEventSub = TrackPlayer.addEventListener(
+    const trainSongPlayerEventSub = TrackPlayer.addEventListener(
       TrackPlayerEvent.PlaybackTrackChanged,
       async (data: {track?: number; position: number; nextTrack?: number}) => {
         console.log('Track changed! Event data:\n', data);
@@ -244,13 +253,13 @@ export default class Training extends React.Component<
         // For the next track
         if (data.nextTrack !== undefined && data.nextTrack !== null) {
           console.log('Collecting next song data...');
-          await this.gatherSongBurst(false);
+          await this.gatherSongBurst();
         }
       },
     );
     // -------------------------------------------------------------------------
 
-    this.setState({trainingCurrPlaylist, trainingEventSub});
+    this.setState({trainingCurrPlaylist, trainSongPlayerEventSub});
 
     await TrackPlayer.play();
   };
@@ -260,16 +269,15 @@ export default class Training extends React.Component<
   };
 
   stopSongTraining = async () => {
-    this.state.trainingEventSub?.remove();
+    this.state.trainSongPlayerEventSub?.remove();
     await TrackPlayer.reset();
 
     this.props.hideLoader(async () => {
       this.setState({
         trainSongData: undefined,
         trainingCurrPlaylist: [],
-        trainingEventSub: undefined,
+        trainSongPlayerEventSub: undefined,
       });
-      bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
     });
   };
 
@@ -298,7 +306,7 @@ export default class Training extends React.Component<
             )}
           </View>
 
-          {/* Debug button for testing gathering a short burst of data */}
+          {/* Select physical activity dropdown */}
           <View style={{padding: 10}}>
             <ModalDropdown
               options={this.activity_list}
@@ -306,10 +314,12 @@ export default class Training extends React.Component<
               dropdownStyle={{width: '80%'}}
             />
           </View>
+
+          {/* Debug button for testing gathering a short burst of data */}
           <View style={{padding: 10}}>
             <Button
               title={'Test Gather Song Data'}
-              onPress={this.gatherSongBurst}
+              onPress={this.testGatherSongData}
               disabled={
                 !this.props.id ||
                 !!this.state.trainMotionData ||
@@ -318,7 +328,7 @@ export default class Training extends React.Component<
             />
           </View>
 
-          {/* TODO Start song training button. Only available after songs are loaded from below choose folder button */}
+          {/* Start song training button. Only available after songs are loaded from below choose folder button */}
           <View style={{padding: 10}}>
             {!this.state.trainingCurrPlaylist.length ? (
               <Button
@@ -332,7 +342,8 @@ export default class Training extends React.Component<
                 onPress={this.stopSongTraining}
               />
             )}
-            {/* TODO Skip song button. Only available after song training is started. */}
+
+            {/* Skip song button. Only available after song training is started. */}
             <View style={styles.musicControlsContainer}>
               <Pressable
                 style={({pressed}) => [
@@ -378,7 +389,7 @@ export default class Training extends React.Component<
           </View>
 
           {/* Choose folder button */}
-          {this.props.id && !this.state.trainMotionData && (
+          {this.props.id && (
             <MusicChooser
               showLoader={this.props.showLoader}
               hideLoader={this.props.hideLoader}
