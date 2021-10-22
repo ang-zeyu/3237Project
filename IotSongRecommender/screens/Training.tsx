@@ -24,6 +24,8 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModalDropdown from 'react-native-modal-dropdown';
 import SongTitleToMoodJSON from '../utils/SongToMood.json'
 
+const typedJson: any = SongTitleToMoodJSON;
+
 export default class Training extends React.Component<
   {
     style: {backgroundColor: any};
@@ -214,11 +216,11 @@ export default class Training extends React.Component<
           const MINIMUM_PROPORTION = 0.5;
           if (proportionPlayed >= MINIMUM_PROPORTION) {
             console.log('Sending prev played song data...');
-            const mood = SongTitleToMoodJSON['Fire']; //send a dummy mood, replace with song title 
+            const mood = typedJson[prevSongPlayed.title]; 
             await this.state.trainSongData.send(mood); // TODO send up the mood also
           } else {
             console.log('Sending prev skipped song data...');
-            const mood = SongTitleToMoodJSON['Fire']; //send a dummy mood, replace with song title
+            const mood = typedJson[prevSongPlayed.title];
             await this.state.trainSongData.send(mood); // TODO send up the mood also
           }
         }
