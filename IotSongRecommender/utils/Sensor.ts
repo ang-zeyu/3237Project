@@ -1,6 +1,6 @@
 import constants from '../constants';
 import {bleEmitter, EVENTS} from './Ble';
-import { EmitterSubscription } from "react-native";
+import {EmitterSubscription} from 'react-native';
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR} = constants;
 
 const motionDataSubscribers: ((
@@ -12,8 +12,8 @@ const motionDataSubscribers: ((
   accelZ: number,
 ) => void)[] = [];
 const opticalDataSubscribers: ((val: number) => void)[] = [];
-const humidityDataSubscribers: ((temp: number, humidity: number) => void)[] = [];
-
+const humidityDataSubscribers: ((temp: number, humidity: number) => void)[] =
+  [];
 
 function handleCharacteristicUpdate(data: {
   value: any;
@@ -21,18 +21,20 @@ function handleCharacteristicUpdate(data: {
   characteristic: string;
   service: string;
 }) {
-  console.log('For', data);
+  // console.log('For', data);
 
   switch (data.characteristic) {
     case MOTION_SENSOR.DATA_UUID: {
+      console.log('Captured motion data');
+
       // motion sensor message is 18 bytes, so + 18
       // startNotificationUseBuffer strangely appends 20 bytes (MTU) of zeros to the back; discard it
       // Refer to the .py provided by prof for other details
+
       const end = data.value.length - 20;
       for (let i = 0; i < end; i += 18) {
         const gyroX =
-          (data.value[i] + (data.value[i + 1] << 8)) *
-          MOTION_SENSOR.GYRO_SCALE;
+          (data.value[i] + (data.value[i + 1] << 8)) * MOTION_SENSOR.GYRO_SCALE;
         const gyroY =
           (data.value[i + 2] + (data.value[i + 3] << 8)) *
           MOTION_SENSOR.GYRO_SCALE;
@@ -56,6 +58,8 @@ function handleCharacteristicUpdate(data: {
       break;
     }
     case OPTICAL_SENSOR.DATA_UUID: {
+      console.log('Captured optical data');
+
       // Refer to the .py provided by prof
       const rawValue = data.value[0] + (data.value[1] << 8);
 
@@ -69,6 +73,8 @@ function handleCharacteristicUpdate(data: {
       break;
     }
     case HUMIDITY_SENSOR.DATA_UUID: {
+      console.log('Captured humidity data');
+
       // Refer to the .py provided by prof
       const rawTempValue = data.value[0] + (data.value[1] << 8);
       const rawHumidtyValue = data.value[2] + (data.value[3] << 8);
