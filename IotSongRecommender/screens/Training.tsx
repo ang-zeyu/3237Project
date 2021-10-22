@@ -127,7 +127,7 @@ export default class Training extends React.Component<
     const callback = async () => {
       await stopMotionSensors(this.props.id as string);
 
-      await trainMotionData.send();
+      await trainMotionData.send(this.state.activity);
 
       this.props.hideLoader();
     };
