@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 
 import DocumentPicker from 'react-native-document-picker';
-import React, {useState} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, {useEffect, useState} from 'react';
 import {NativeModules} from 'react-native';
 
 // Custom native module for walking directory and extracting music data
@@ -42,8 +43,25 @@ const MusicChooser = (props: {
   hideLoader: any;
   musicUris: Song[];
   setMusicUris: any;
+  cacheKey?: string;
 }) => {
   const [directoryUri, setDirectoryUri] = useState('');
+
+  useEffect(() => {
+    if (!props.cacheKey) {
+      return;
+    }
+
+    AsyncStorage.getItem(props.cacheKey).then(songsJsonString => {
+      if (!songsJsonString) {
+        return;
+      }
+
+      console.log('Fetched cached training songs');
+      const songs: Song[] = JSON.parse(songsJsonString);
+      props.setMusicUris(songs);
+    });
+  }, []);
 
   async function openFolder() {
     try {
@@ -62,7 +80,13 @@ const MusicChooser = (props: {
           FilePathResolverModule.getDirectoryMusicFiles(uri, (res: Song[]) => {
             console.log(`Found ${res.length} songs.`);
             props.setMusicUris(res);
-            props.hideLoader();
+            if (props.cacheKey) {
+              AsyncStorage.setItem(props.cacheKey, JSON.stringify(res)).then(
+                () => props.hideLoader(),
+              );
+            } else {
+              props.hideLoader();
+            }
           });
         }, 1000);
       });
@@ -96,11 +120,10 @@ const MusicChooser = (props: {
 
   return (
     <View>
-      {!directoryUri && (
-        <View style={{padding: 10}}>
-          <Button title={'Choose Folder'} onPress={openFolder} />
-        </View>
-      )}
+      <View style={{padding: 10}}>
+        <Button title={'Choose Folder'} onPress={openFolder} />
+        <Text>Current directory: {directoryUri}</Text>
+      </View>
       <View style={{padding: 10}}>
         <FlatList data={props.musicUris} renderItem={renderMusic} />
       </View>
