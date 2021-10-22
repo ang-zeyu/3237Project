@@ -6,6 +6,7 @@ import {
 import {SongData, gatherSongData} from '../utils/SongSensor';
 import {
   Button,
+  EmitterSubscription,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -16,7 +17,9 @@ import React from 'react';
 import MusicChooser, {Song} from '../components/MusicChooser';
 import {createCharacteristicUpdateListener} from '../utils/Sensor';
 import {bleEmitter, EVENTS} from '../utils/Ble';
-import TrackPlayer, {Event} from 'react-native-track-player';
+import TrackPlayer, {
+  Event as TrackPlayerEvent,
+} from 'react-native-track-player';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import ModalDropdown from 'react-native-modal-dropdown';
 
@@ -31,6 +34,8 @@ export default class Training extends React.Component<
   },
   {
     trainingSongs: Song[];
+    trainingCurrPlaylist: Song[];
+    trainingEventSub?: EmitterSubscription;
     trainSongData?: SongData;
     trainMotionData?: TrainMotionData;
 
@@ -46,6 +51,7 @@ export default class Training extends React.Component<
     super(props);
     this.state = {
       trainingSongs: [],
+      trainingCurrPlaylist: [],
       trainSongData: undefined,
       trainMotionData: undefined,
       motionSensorText: '',
@@ -58,6 +64,10 @@ export default class Training extends React.Component<
   }
 
   activity_list = ['Walking', 'Running', 'Lying Down', 'Working'];
+
+  componentWillUnmount() {
+    this.state.trainingEventSub?.remove();
+  }
 
   processMotionData = (
     gyroX: number,
@@ -153,90 +163,113 @@ export default class Training extends React.Component<
     }
   };
 
-  testGatherSongData = async () => {
-    this.props.showLoader(async () => {
-      const countdown = await gatherSongData(this.props.id as string);
+  gatherSongBurst: (doReset?: boolean) => Promise<SongData> = (
+    doReset = true,
+  ) => {
+    return new Promise(resolve => {
+      this.props.showLoader(async () => {
+        const countdown = await gatherSongData(this.props.id as string);
 
-      createCharacteristicUpdateListener(
-        this.processMotionData,
-        this.processOpticalData,
-        this.processHumidityData,
-      );
+        createCharacteristicUpdateListener(
+          this.processMotionData,
+          this.processOpticalData,
+          this.processHumidityData,
+        );
 
-      const songData = new SongData();
-      this.setState({trainSongData: songData}, async () => {
-        await countdown();
+        const songData = new SongData();
+        this.setState({trainSongData: songData}, async () => {
+          await countdown();
 
-        this.setState({trainSongData: undefined});
-        this.props.hideLoader();
-        bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
-
-        await songData.send();
-      });
-    });
-  };
-
-  // Really rough sketch / tbd, pending consult
-  randomPickSongAndPlay = async () => {
-    // Gather IOT data
-    this.props.showLoader(async () => {
-      const countdown = await gatherSongData(this.props.id as string);
-
-      createCharacteristicUpdateListener(
-        this.processMotionData,
-        this.processOpticalData,
-        this.processHumidityData,
-      );
-
-      const songData = new SongData();
-      this.setState({trainSongData: songData}, async () => {
-        await countdown();
-
-        this.setState({trainSongData: undefined});
-        this.props.hideLoader();
-        bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
-
-        // Randomise, see what action user takes...
-        const randIdx = Math.floor(Math.random() * this.state.trainingSongs.length);
-        const song = this.state.trainingSongs[randIdx];
-
-        await TrackPlayer.add(song);
-        await TrackPlayer.play();
-
-        TrackPlayer.addEventListener(Event.PlaybackTrackChanged, () => {
-          if (!this.state.trainSongData) {
-            return;
+          if (doReset) {
+            this.setState({trainSongData: undefined});
           }
+          this.props.hideLoader();
+          bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
+
+          resolve(songData);
         });
       });
     });
   };
 
-  handleSkipButton = async () => {
+  // Really rough sketch / tbd, pending consult
+  startSongTraining = async () => {
+    // -------------------------------------------------------------------------
     await TrackPlayer.reset();
-    await this.randomPickSongAndPlay();
+    console.log('track player reset');
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // Shuffle to generate a playlist, see what action user takes...
+    const trainingCurrPlaylist: Song[] = [...this.state.trainingSongs];
+    for (let i = trainingCurrPlaylist.length; i > 0; i--) {
+      const randIdx = Math.floor(Math.random() * i);
+
+      // Swap, in doing so the current song will not be randomly selected again
+      const selectedSong = trainingCurrPlaylist[randIdx];
+      trainingCurrPlaylist[randIdx] = trainingCurrPlaylist[i - 1];
+      trainingCurrPlaylist[i - 1] = selectedSong;
+    }
+
+    await TrackPlayer.add(trainingCurrPlaylist);
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    const trainingEventSub = TrackPlayer.addEventListener(
+      TrackPlayerEvent.PlaybackTrackChanged,
+      async (data: {track?: number; position: number; nextTrack?: number}) => {
+        console.log('Track changed! Event data:\n', data);
+
+        // Handle previous (completed -- or not) track
+        if (data.track !== undefined && data.track !== null) {
+          const prevSongPlayed = this.state.trainingCurrPlaylist[data.track];
+          const proportionPlayed = data.position / prevSongPlayed.duration;
+          console.log(prevSongPlayed);
+          console.log(proportionPlayed);
+
+          if (!this.state.trainSongData) {
+            throw new Error('No trainSongData defined');
+          }
+
+          const MINIMUM_PROPORTION = 0.5;
+          if (proportionPlayed >= MINIMUM_PROPORTION) {
+            console.log('Sending prev played song data...');
+            await this.state.trainSongData.send(); // TODO send up the mood also
+          } else {
+            console.log('Sending prev skipped song data...');
+            await this.state.trainSongData.send(); // TODO send up the mood also
+          }
+        }
+
+        // For the next track
+        if (data.nextTrack !== undefined && data.nextTrack !== null) {
+          console.log('Collecting next song data...');
+          await this.gatherSongBurst(false);
+        }
+      },
+    );
+    // -------------------------------------------------------------------------
+
+    this.setState({trainingCurrPlaylist, trainingEventSub});
+
+    await TrackPlayer.play();
   };
 
-  startSongTraining = async () => {
-    this.props.showLoader(async () => {
-      const countdown = await gatherSongData(this.props.id as string);
+  handleSkipButton = async () => {
+    await TrackPlayer.skipToNext();
+  };
 
-      createCharacteristicUpdateListener(
-        this.processMotionData,
-        this.processOpticalData,
-        this.processHumidityData,
-      );
+  stopSongTraining = async () => {
+    this.state.trainingEventSub?.remove();
+    await TrackPlayer.reset();
 
-      const songData = new SongData();
-      this.setState({trainSongData: songData}, async () => {
-        await countdown();
-
-        this.setState({trainSongData: undefined});
-        this.props.hideLoader();
-        bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
-
-        await songData.send();
+    this.props.hideLoader(async () => {
+      this.setState({
+        trainSongData: undefined,
+        trainingCurrPlaylist: [],
+        trainingEventSub: undefined,
       });
+      bleEmitter.removeAllListeners(EVENTS.CHAR_UPDATE);
     });
   };
 
@@ -276,7 +309,7 @@ export default class Training extends React.Component<
           <View style={{padding: 10}}>
             <Button
               title={'Test Gather Song Data'}
-              onPress={this.testGatherSongData}
+              onPress={this.gatherSongBurst}
               disabled={
                 !this.props.id ||
                 !!this.state.trainMotionData ||
@@ -287,11 +320,18 @@ export default class Training extends React.Component<
 
           {/* TODO Start song training button. Only available after songs are loaded from below choose folder button */}
           <View style={{padding: 10}}>
-            <Button
-              title={'Train Songs'}
-              onPress={this.startSongTraining}
-              disabled={!this.state.trainingSongs.length}
-            />
+            {!this.state.trainingCurrPlaylist.length ? (
+              <Button
+                title={'Train Songs'}
+                onPress={this.startSongTraining}
+                disabled={!this.state.trainingSongs.length}
+              />
+            ) : (
+              <Button
+                title={'Stop Training Songs'}
+                onPress={this.stopSongTraining}
+              />
+            )}
             {/* TODO Skip song button. Only available after song training is started. */}
             <View style={styles.musicControlsContainer}>
               <Pressable
@@ -343,7 +383,9 @@ export default class Training extends React.Component<
               showLoader={this.props.showLoader}
               hideLoader={this.props.hideLoader}
               musicUris={this.state.trainingSongs}
-              setMusicUris={(musicUris: Song[]) => this.setState({trainingSongs: musicUris})}
+              setMusicUris={(musicUris: Song[]) =>
+                this.setState({trainingSongs: musicUris})
+              }
             />
           )}
         </View>

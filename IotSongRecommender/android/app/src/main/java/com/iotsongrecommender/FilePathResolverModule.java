@@ -47,21 +47,25 @@ public class FilePathResolverModule extends  ReactContextBaseJavaModule {
                     && !f.getName().startsWith("._") // metadata
             ){
                 Uri uri = f.getUri();
-                Log.i(this.getName(), "Setting " + uri);
+                //Log.i(this.getName(), "Setting " + uri);
 
                 MediaMetadataRetriever m = new MediaMetadataRetriever();
                 m.setDataSource(this.getReactApplicationContext(), uri);
 
-                 Log.i(this.getName(), "Successfully set " + uri);
+                //Log.i(this.getName(), "Successfully set " + uri);
 
                 WritableMap currMusic = Arguments.createMap();
-                currMusic.putString("url", uri.toString());
                 String title = m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+                int duration = (int)Math.ceil(
+                    ((double)Integer.parseInt(m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION))) / 1000.0
+                    );
                 if (title == null) {
                     continue; // must have title
                 }
+                currMusic.putString("url", uri.toString());
                 currMusic.putString("title", title);
                 currMusic.putString("artist", m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
+                currMusic.putInt("duration", duration);
                 m.release();
 
                 music.pushMap(currMusic);
