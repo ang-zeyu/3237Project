@@ -41,11 +41,6 @@ export default class Training extends React.Component<
     trainMotionCharUnsub?: () => void;
     trainMotionData?: TrainMotionData;
 
-    /*motionSensorText: string;
-    songSensorText: {
-      optical: string;
-      humidity: string;
-    };*/
     activity: string;
   }
 > {
@@ -74,44 +69,22 @@ export default class Training extends React.Component<
     }
   }
 
-  processMotionData = (
-    gyroX: number,
-    gyroY: number,
-    gyroZ: number,
-    accelX: number,
-    accelY: number,
-    accelZ: number,
-  ) => {
-    /*this.setState({
-      motionSensorText: `Gyrometer: ${gyroX} ${gyroY} ${gyroZ}\nAccelerometer:${accelX} ${accelY} ${accelZ}`,
-    });*/
-
-    if (this.state.trainMotionData) {
-      this.state.trainMotionData.gyroX.push(gyroX);
-      this.state.trainMotionData.gyroY.push(gyroY);
-      this.state.trainMotionData.gyroZ.push(gyroZ);
-      this.state.trainMotionData.accelX.push(accelX);
-      this.state.trainMotionData.accelY.push(accelY);
-      this.state.trainMotionData.accelZ.push(accelZ);
-    }
-
-    if (this.state.trainSongData) {
-      this.state.trainSongData.gyroX.push(gyroX);
-      this.state.trainSongData.gyroY.push(gyroY);
-      this.state.trainSongData.gyroZ.push(gyroZ);
-      this.state.trainSongData.accelX.push(accelX);
-      this.state.trainSongData.accelY.push(accelY);
-      this.state.trainSongData.accelZ.push(accelZ);
-    }
-  };
-
   startMotionTraining = async () => {
+    const trainMotionData = new TrainMotionData();
+
     const callback = async () => {
       try {
         await configureMotionSensors(this.props.id as string);
 
         const trainMotionCharSub = createCharacteristicUpdateListener(
-          this.processMotionData,
+          (gyroX, gyroY, gyroZ, accelX, accelY, accelZ) => {
+            trainMotionData.gyroX.push(gyroX);
+            trainMotionData.gyroY.push(gyroY);
+            trainMotionData.gyroZ.push(gyroZ);
+            trainMotionData.accelX.push(accelX);
+            trainMotionData.accelY.push(accelY);
+            trainMotionData.accelZ.push(accelZ);
+          },
           () => {},
           () => {},
         );
@@ -126,7 +99,7 @@ export default class Training extends React.Component<
 
     await this.props.startService();
     this.props.showLoader();
-    this.setState({trainMotionData: new TrainMotionData()}, callback);
+    this.setState({trainMotionData}, callback);
   };
 
   stopMotionTraining = async () => {
@@ -156,33 +129,6 @@ export default class Training extends React.Component<
     );
   };
 
-  processHumidityData = (temp: number, humidity: number) => {
-    /*this.setState({
-      songSensorText: {
-        optical: this.state.songSensorText.optical,
-        humidity: `Temperature: ${temp}\nHumidity: ${humidity}`,
-      },
-    });*/
-
-    if (this.state.trainSongData) {
-      this.state.trainSongData.tempVals.push(temp);
-      this.state.trainSongData.humidityVals.push(humidity);
-    }
-  };
-
-  processOpticalData = (opticalVal: number) => {
-    /*this.setState({
-      songSensorText: {
-        optical: `Optical: ${opticalVal}`,
-        humidity: this.state.songSensorText.humidity,
-      },
-    });*/
-
-    if (this.state.trainSongData) {
-      this.state.trainSongData.opticalVals.push(opticalVal);
-    }
-  };
-
   testGatherSongData = async () => {
     await this.gatherSongBurst();
     this.setState({trainSongData: undefined});
@@ -194,13 +140,25 @@ export default class Training extends React.Component<
         console.log('Gathering song data...');
         const countdown = await gatherSongData(this.props.id as string);
 
+        const trainSongData = new SongData();
         const trainSongCharUnsub = createCharacteristicUpdateListener(
-          this.processMotionData,
-          this.processOpticalData,
-          this.processHumidityData,
+          (gyroX, gyroY, gyroZ, accelX, accelY, accelZ) => {
+            trainSongData.gyroX.push(gyroX);
+            trainSongData.gyroY.push(gyroY);
+            trainSongData.gyroZ.push(gyroZ);
+            trainSongData.accelX.push(accelX);
+            trainSongData.accelY.push(accelY);
+            trainSongData.accelZ.push(accelZ);
+          },
+          opticalVal => {
+            trainSongData.opticalVals.push(opticalVal);
+          },
+          (temp, humidity) => {
+            trainSongData.tempVals.push(temp);
+            trainSongData.humidityVals.push(humidity);
+          },
         );
 
-        const trainSongData = new SongData();
         this.setState({trainSongData}, async () => {
           await countdown();
 
@@ -313,7 +271,7 @@ export default class Training extends React.Component<
               <Button
                 title={'Train Motion'}
                 onPress={this.startMotionTraining}
-                disabled={!this.props.id || !!this.state.trainSongData}
+                disabled={!this.props.id}
               />
             )}
           </View>
@@ -326,19 +284,6 @@ export default class Training extends React.Component<
               dropdownStyle={{width: '80%'}}
             />
           </View>
-
-          {/* Debug button for testing gathering a short burst of data */}
-          {/*<View style={{padding: 10}}>
-            <Button
-              title={'Test Gather Song Data'}
-              onPress={this.testGatherSongData}
-              disabled={
-                !this.props.id ||
-                !!this.state.trainMotionData ||
-                !!this.state.trainSongData
-              }
-            />
-          </View>*/}
 
           {/* Start song training button. Only available after songs are loaded from below choose folder button */}
           <View style={{padding: 10}}>
@@ -371,34 +316,6 @@ export default class Training extends React.Component<
               </Pressable>
             </View>
           </View>
-
-          {/* Debug information on sensors */}
-          {/*<View style={styles.debugContainer}>
-            {this.state.trainSongData || this.state.trainMotionData ? (
-              <React.Fragment>
-                <Text style={styles.debugTitle}>Motion sensor is active</Text>
-                <Text style={styles.debugInfo}>
-                  {this.state.motionSensorText}
-                </Text>
-              </React.Fragment>
-            ) : (
-              <Text style={styles.debugTitle}>Motion sensor is inactive</Text>
-            )}
-
-            {this.state.trainSongData ? (
-              <React.Fragment>
-                <Text style={styles.debugTitle}>Song sensors are active</Text>
-                <Text style={styles.debugInfo}>
-                  {this.state.songSensorText.optical}
-                </Text>
-                <Text style={styles.debugInfo}>
-                  {this.state.songSensorText.humidity}
-                </Text>
-              </React.Fragment>
-            ) : (
-              <Text style={styles.debugTitle}>Song sensors are inactive</Text>
-            )}
-          </View>*/}
 
           {/* Choose folder button */}
           {this.props.id && (
