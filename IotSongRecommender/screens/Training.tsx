@@ -41,11 +41,11 @@ export default class Training extends React.Component<
     trainMotionCharSub?: EmitterSubscription;
     trainMotionData?: TrainMotionData;
 
-    motionSensorText: string;
+    /*motionSensorText: string;
     songSensorText: {
       optical: string;
       humidity: string;
-    };
+    };*/
     activity: string;
   }
 > {
@@ -56,11 +56,11 @@ export default class Training extends React.Component<
       trainingCurrPlaylist: [],
       trainSongData: undefined,
       trainMotionData: undefined,
-      motionSensorText: '',
+      /*motionSensorText: '',
       songSensorText: {
         optical: '',
         humidity: '',
-      },
+      },*/
       activity: 'Walking',
     };
   }
@@ -80,9 +80,9 @@ export default class Training extends React.Component<
     accelY: number,
     accelZ: number,
   ) => {
-    this.setState({
+    /*this.setState({
       motionSensorText: `Gyrometer: ${gyroX} ${gyroY} ${gyroZ}\nAccelerometer:${accelX} ${accelY} ${accelZ}`,
-    });
+    });*/
 
     const container = this.state.trainMotionData || this.state.trainSongData;
     if (container) {
@@ -145,12 +145,12 @@ export default class Training extends React.Component<
   };
 
   processHumidityData = (temp: number, humidity: number) => {
-    this.setState({
+    /*this.setState({
       songSensorText: {
         optical: this.state.songSensorText.optical,
         humidity: `Temperature: ${temp}\nHumidity: ${humidity}`,
       },
-    });
+    });*/
 
     if (this.state.trainSongData) {
       this.state.trainSongData.tempVals.push(temp);
@@ -159,12 +159,12 @@ export default class Training extends React.Component<
   };
 
   processOpticalData = (opticalVal: number) => {
-    this.setState({
+    /*this.setState({
       songSensorText: {
         optical: `Optical: ${opticalVal}`,
         humidity: this.state.songSensorText.humidity,
       },
-    });
+    });*/
 
     if (this.state.trainSongData) {
       this.state.trainSongData.opticalVals.push(opticalVal);
@@ -316,7 +316,7 @@ export default class Training extends React.Component<
           </View>
 
           {/* Debug button for testing gathering a short burst of data */}
-          <View style={{padding: 10}}>
+          {/*<View style={{padding: 10}}>
             <Button
               title={'Test Gather Song Data'}
               onPress={this.testGatherSongData}
@@ -326,7 +326,7 @@ export default class Training extends React.Component<
                 !!this.state.trainSongData
               }
             />
-          </View>
+          </View>*/}
 
           {/* Start song training button. Only available after songs are loaded from below choose folder button */}
           <View style={{padding: 10}}>
@@ -361,7 +361,7 @@ export default class Training extends React.Component<
           </View>
 
           {/* Debug information on sensors */}
-          <View style={styles.debugContainer}>
+          {/*<View style={styles.debugContainer}>
             {this.state.trainSongData || this.state.trainMotionData ? (
               <React.Fragment>
                 <Text style={styles.debugTitle}>Motion sensor is active</Text>
@@ -386,7 +386,7 @@ export default class Training extends React.Component<
             ) : (
               <Text style={styles.debugTitle}>Song sensors are inactive</Text>
             )}
-          </View>
+          </View>*/}
 
           {/* Choose folder button */}
           {this.props.id && (
