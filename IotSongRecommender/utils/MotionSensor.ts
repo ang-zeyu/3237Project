@@ -46,7 +46,7 @@ export class TrainMotionData {
     });*/
   }
 
-  async send() {
+  async send(activity: string) {
     const body = {
       id: this.id,
       gyroX: this.gyroX,
@@ -55,6 +55,7 @@ export class TrainMotionData {
       accelX: this.accelX,
       accelY: this.accelY,
       accelZ: this.accelZ,
+      activity: activity,
       isFinal: true,
     };
 
