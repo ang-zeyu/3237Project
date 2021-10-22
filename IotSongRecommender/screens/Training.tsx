@@ -86,14 +86,22 @@ export default class Training extends React.Component<
       motionSensorText: `Gyrometer: ${gyroX} ${gyroY} ${gyroZ}\nAccelerometer:${accelX} ${accelY} ${accelZ}`,
     });*/
 
-    const container = this.state.trainMotionData || this.state.trainSongData;
-    if (container) {
-      container.gyroX.push(gyroX);
-      container.gyroY.push(gyroY);
-      container.gyroZ.push(gyroZ);
-      container.accelX.push(accelX);
-      container.accelY.push(accelY);
-      container.accelZ.push(accelZ);
+    if (this.state.trainMotionData) {
+      this.state.trainMotionData.gyroX.push(gyroX);
+      this.state.trainMotionData.gyroY.push(gyroY);
+      this.state.trainMotionData.gyroZ.push(gyroZ);
+      this.state.trainMotionData.accelX.push(accelX);
+      this.state.trainMotionData.accelY.push(accelY);
+      this.state.trainMotionData.accelZ.push(accelZ);
+    }
+
+    if (this.state.trainSongData) {
+      this.state.trainSongData.gyroX.push(gyroX);
+      this.state.trainSongData.gyroY.push(gyroY);
+      this.state.trainSongData.gyroZ.push(gyroZ);
+      this.state.trainSongData.accelX.push(accelX);
+      this.state.trainSongData.accelY.push(accelY);
+      this.state.trainSongData.accelZ.push(accelZ);
     }
   };
 
