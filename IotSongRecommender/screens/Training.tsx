@@ -38,7 +38,7 @@ export default class Training extends React.Component<
     trainSongPlayerEventSub?: EmitterSubscription;
     trainSongData?: SongData;
 
-    trainMotionCharSub?: EmitterSubscription;
+    trainMotionCharUnsub?: () => void;
     trainMotionData?: TrainMotionData;
 
     /*motionSensorText: string;
@@ -69,7 +69,9 @@ export default class Training extends React.Component<
 
   componentWillUnmount() {
     this.state.trainSongPlayerEventSub?.remove();
-    this.state.trainMotionCharSub?.remove();
+    if (this.state.trainMotionCharUnsub) {
+      this.state.trainMotionCharUnsub();
+    }
   }
 
   processMotionData = (
@@ -107,7 +109,7 @@ export default class Training extends React.Component<
         );
 
         this.props.hideLoader();
-        this.setState({trainMotionCharSub});
+        this.setState({trainMotionCharUnsub: trainMotionCharSub});
       } catch (e) {
         this.props.hideLoader();
         this.setState({trainMotionData: undefined});
@@ -120,19 +122,21 @@ export default class Training extends React.Component<
   };
 
   stopMotionTraining = async () => {
-    const {trainMotionData, trainMotionCharSub} = this.state;
+    const {trainMotionData, trainMotionCharUnsub} = this.state;
     if (!trainMotionData) {
       return;
     }
 
     await this.props.stopService(); // stop foreground service
-    trainMotionCharSub?.remove();
+    if (trainMotionCharUnsub) {
+      trainMotionCharUnsub();
+    }
 
     this.props.showLoader();
     this.setState(
       {
         trainMotionData: undefined,
-        trainMotionCharSub: undefined,
+        trainMotionCharUnsub: undefined,
       },
       async () => {
         await stopMotionSensors(this.props.id as string);
@@ -182,7 +186,7 @@ export default class Training extends React.Component<
         console.log('Gathering song data...');
         const countdown = await gatherSongData(this.props.id as string);
 
-        const trainSongCharSub = createCharacteristicUpdateListener(
+        const trainSongCharUnsub = createCharacteristicUpdateListener(
           this.processMotionData,
           this.processOpticalData,
           this.processHumidityData,
@@ -193,7 +197,7 @@ export default class Training extends React.Component<
           await countdown();
 
           this.props.hideLoader();
-          trainSongCharSub.remove();
+          trainSongCharUnsub();
           console.log('Gathered song data...');
 
           resolve();
