@@ -51,11 +51,6 @@ export default class Training extends React.Component<
       trainingCurrPlaylist: [],
       trainSongData: undefined,
       trainMotionData: undefined,
-      /*motionSensorText: '',
-      songSensorText: {
-        optical: '',
-        humidity: '',
-      },*/
       activity: 'Walking',
     };
   }

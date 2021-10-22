@@ -1,6 +1,9 @@
 /*
  Single set of data for song prediction (or, training)
  */
+
+import BackgroundTimer from 'react-native-background-timer';
+
 import {ble} from './Ble';
 
 import constants from '../constants';
@@ -126,7 +129,7 @@ export async function gatherSongData(
   // Returns a function that initiates the data collection countdown
   return () => {
     return new Promise<void>((resolve, reject) => {
-      setTimeout(async () => {
+      BackgroundTimer.setTimeout(async () => {
         try {
           await stopSongDataGathering(sensorId);
         } catch (e) {

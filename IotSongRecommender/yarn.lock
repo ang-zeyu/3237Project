@@ -5795,6 +5795,11 @@
   "resolved" "https://registry.npmjs.org/react-is/-/react-is-16.13.1.tgz"
   "version" "16.13.1"
 
+"react-native-background-timer@^2.4.1":
+  "integrity" "sha512-TE4Kiy7jUyv+hugxDxitzu38sW1NqjCk4uE5IgU2WevLv7sZacaBc6PZKOShNRPGirLl1NWkaG3LDEkdb9Um5g=="
+  "resolved" "https://registry.npmjs.org/react-native-background-timer/-/react-native-background-timer-2.4.1.tgz"
+  "version" "2.4.1"
+
 "react-native-ble-manager@^7.6.3":
   "integrity" "sha512-cZqJ2apg9lk3MAqZAS43tpbVzVRO7zAyzeZb8FcyJqzMNEqC3CDAqWuV/QFRiqq219hIlJvwFD2ul7TwEB3ySg=="
   "resolved" "https://registry.npmjs.org/react-native-ble-manager/-/react-native-ble-manager-7.6.3.tgz"
@@ -5902,7 +5907,7 @@
     "whatwg-fetch" "^3.0.0"
     "ws" "^6.1.4"
 
-"react-native@*", "react-native@^0.0.0-0 || ^0.60.6 || ^0.61.5 || ^0.62.2 || ^0.63.2 || ^0.64.0 || ^0.65.0 || ^0.66.0 || 1000.0.0", "react-native@>= 0.41.2", "react-native@>=0.60.0-rc.2", "react-native@0.66.0":
+"react-native@*", "react-native@^0.0.0-0 || ^0.60.6 || ^0.61.5 || ^0.62.2 || ^0.63.2 || ^0.64.0 || ^0.65.0 || ^0.66.0 || 1000.0.0", "react-native@>= 0.41.2", "react-native@>=0.47.0", "react-native@>=0.60.0-rc.2", "react-native@0.66.0":
   "integrity" "sha512-m26TKwzsfHVdZ1hDG+7mZ4M4ftxFFZrhtiT0OXuwfBzmNtB3xhsJtYszPeizw33c9YNp8rvehKT3c4ldDCW6kA=="
   "resolved" "https://registry.npmjs.org/react-native/-/react-native-0.66.0.tgz"
   "version" "0.66.0"
