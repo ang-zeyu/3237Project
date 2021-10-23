@@ -318,17 +318,15 @@ export default class Training extends React.Component<
           </View>
 
           {/* Choose folder button */}
-          {this.props.id && (
-            <MusicChooser
-              showLoader={this.props.showLoader}
-              hideLoader={this.props.hideLoader}
-              musicUris={this.state.trainingSongs}
-              setMusicUris={(musicUris: Song[]) =>
-                this.setState({trainingSongs: musicUris})
-              }
-              cacheKey={'trainingSongs'}
-            />
-          )}
+          <MusicChooser
+            showLoader={this.props.showLoader}
+            hideLoader={this.props.hideLoader}
+            musicUris={this.state.trainingSongs}
+            setMusicUris={(musicUris: Song[]) =>
+              this.setState({trainingSongs: musicUris})
+            }
+            cacheKey={'trainingSongs'}
+          />
         </View>
       </SafeAreaView>
     );
