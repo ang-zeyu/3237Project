@@ -41,6 +41,14 @@ export class SongData {
     };
 
     console.log(JSON.stringify(body, null, 4));
+    fetch('http://54.251.141.237:8080/add-song-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+    })
+
     /*fetch('TODO API', {
       method: 'POST',
       body: JSON.stringify(body),
