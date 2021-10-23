@@ -211,12 +211,12 @@ export default class Training extends React.Component<
           const MINIMUM_PROPORTION = 0.5;
           if (proportionPlayed >= MINIMUM_PROPORTION) {
             console.log('Sending prev played song data...');
-            const mood = typedJson[prevSongPlayed.title]; 
-            await this.state.trainSongData.send(mood); // TODO send up the mood also
+            const mood = typedJson[prevSongPlayed.title];
+            await this.state.trainSongData.send(mood, false); // TODO send up the mood also
           } else {
             console.log('Sending prev skipped song data...');
             const mood = typedJson[prevSongPlayed.title];
-            await this.state.trainSongData.send(mood); // TODO send up the mood also
+            await this.state.trainSongData.send(mood, true); // TODO send up the mood also
           }
         }
 
