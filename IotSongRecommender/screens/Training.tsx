@@ -291,7 +291,7 @@ export default class Training extends React.Component<
               <Button
                 title={'Train Songs'}
                 onPress={this.startSongTraining}
-                disabled={!this.state.trainingSongs.length}
+                disabled={!this.props.id || !this.state.trainingSongs.length}
               />
             ) : (
               <Button
@@ -307,7 +307,8 @@ export default class Training extends React.Component<
                   styles.musicControl,
                   (pressed && {backgroundColor: '#ffd5a9'}) || {},
                 ]}
-                onPress={this.handleSkipButton}>
+                onPress={this.handleSkipButton}
+                disabled={!this.props.id}>
                 <Ionicons
                   name={'play-forward-outline'}
                   size={28}
