@@ -4,8 +4,8 @@
     "Run to the Hills": ["Aggressive"],
     "Fire": ["Aggressive"],
     "Its my life": ["Aggressive"],
-    "Chase Me": ["Aggressive"],
-    "Livin on a prayer": ["Aggressive"],
+    "Radioactive": ["Aggressive"],
+    "Livin On A Prayer": ["Aggressive"],
     "Numb": ["Aggressive"],
     "Telephone": ["Athletic"],
     "Ballroom Blitz": ["Athletic"],
@@ -19,7 +19,7 @@
     "It might as well be spring": ["Atmospheric"],
     "Every time I close my eyes": ["Atmospheric"],
     "Do you remember?": ["Atmospheric"],
-    "City of stars": ["Atmospheric"],
+    "City of Stars": ["Atmospheric"],
     "Wild Child": ["Atmospheric"],
     "Falls": ["Atmospheric"],
     "Imagine": ["Atmospheric"],
@@ -43,6 +43,7 @@
     "Sinking Ship": ["Depressive"],
     "Team": ["Depressive"],
     "Summertime Sadness": ["Depressive"],
+    "Chasing Cars": ["Depressive"],
     "Moon Dream": ["Elegant"],
     "Ol' Man River": ["Elegant"],
     "South of the Border": ["Elegant"],
@@ -54,5 +55,5 @@
     "Somebody that I used to know": ["Warm"],
     "You belong with me": ["Warm"],
     "Viva La Vida": ["Warm"],
-    "Safe and sound": ["Warm"]
+    "Safe and Sound": ["Warm"]
 }
