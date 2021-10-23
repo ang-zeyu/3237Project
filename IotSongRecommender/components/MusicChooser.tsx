@@ -20,6 +20,7 @@ export interface Song {
   title: string;
   artist: string;
   duration: number;
+  filename: string;
 }
 
 const requestExternalStorageReadPermissions = async () => {

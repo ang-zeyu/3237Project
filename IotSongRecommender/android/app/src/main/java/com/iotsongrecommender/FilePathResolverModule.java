@@ -13,6 +13,8 @@ import android.util.Log;
 
 import androidx.documentfile.provider.DocumentFile;
 
+import java.util.regex.Pattern;
+
 /*
  Custom native module for resolving actual file path from content uri (from document picker).
 
@@ -44,8 +46,17 @@ public class FilePathResolverModule extends  ReactContextBaseJavaModule {
                 getMusicFiles(f, music);
             } else if (f.isFile()
                     && f.getType().contains("audio")
-                    && !f.getName().startsWith("._") // metadata
             ){
+                String fileName = f.getName();
+                if (fileName.startsWith("._")) {
+                    continue; // metadata
+                }
+
+                int lastDotIndex = fileName.lastIndexOf('.');
+                if (lastDotIndex != -1) {
+                    fileName = fileName.substring(0, lastDotIndex);
+                }
+
                 Uri uri = f.getUri();
                 //Log.i(this.getName(), "Setting " + uri);
 
@@ -64,6 +75,7 @@ public class FilePathResolverModule extends  ReactContextBaseJavaModule {
                 }
                 currMusic.putString("url", uri.toString());
                 currMusic.putString("title", title);
+                currMusic.putString("filename", fileName);
                 currMusic.putString("artist", m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
                 currMusic.putInt("duration", duration);
                 m.release();
