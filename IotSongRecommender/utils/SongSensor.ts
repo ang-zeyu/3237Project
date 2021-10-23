@@ -25,7 +25,7 @@ export class SongData {
   humidityVals: number[] = [];
   tempVals: number[] = [];
 
-  async send(mood: string, isSkipped: boolean) {
+  async send(moods: string[], isSkipped: boolean) {
     const body = {
       gyroX: this.gyroX,
       gyroY: this.gyroY,
@@ -36,7 +36,7 @@ export class SongData {
       opticalVals: this.opticalVals,
       tempVals: this.tempVals,
       humidityVals: this.humidityVals,
-      mood,
+      moods,
       isSkipped,
     };
 
