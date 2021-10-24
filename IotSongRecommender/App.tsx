@@ -138,6 +138,7 @@ class App extends React.Component<
             tabBarInactiveTintColor: 'gray',
             tabBarLabelStyle: {marginBottom: 10},
             tabBarStyle: {height: 60},
+            headerShown: false,
           })}>
           <Tab.Screen name={'Training'}>
             {() => (
