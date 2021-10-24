@@ -8,7 +8,6 @@ import {ble} from './Ble';
 
 import constants from '../constants';
 import {configureMotionSensors, stopMotionSensors} from './MotionSensor';
-import {createCharacteristicUpdateListener} from './Sensor';
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR} = constants;
 
 export class SongData {
@@ -42,17 +41,14 @@ export class SongData {
 
     console.log(JSON.stringify(body, null, 4));
     fetch('http://54.251.141.237:8080/add-song-data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    })
-
-    /*fetch('TODO API', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(body),
-    });*/
+    }).catch((err) => {
+      console.log('Error sending song data', err);
+    });
   }
 }
 

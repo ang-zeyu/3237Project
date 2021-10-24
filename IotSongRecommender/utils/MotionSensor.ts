@@ -3,7 +3,6 @@ import {ble} from './Ble';
 import constants from '../constants';
 const {MOTION_SENSOR} = constants;
 
-
 /*
  Data collected for motion training
  */
@@ -61,17 +60,14 @@ export class TrainMotionData {
 
     console.log(JSON.stringify(body, null, 4));
     fetch('http://54.251.141.237:8080/add-motion-data', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-    })
-
-    /*fetch('TODO API', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(body),
-    });*/
+    }).catch((err) => {
+      console.log('Error sending motion data', err);
+    });
   }
 }
 
