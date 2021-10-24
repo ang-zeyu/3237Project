@@ -327,7 +327,6 @@ export default class Training extends React.Component<
             setMusicUris={(musicUris: Song[]) =>
               this.setState({trainingSongs: musicUris})
             }
-            cacheKey={'trainingSongs'}
           />
         </View>
       </SafeAreaView>
