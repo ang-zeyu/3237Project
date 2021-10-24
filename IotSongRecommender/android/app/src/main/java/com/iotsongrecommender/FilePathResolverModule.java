@@ -70,11 +70,8 @@ public class FilePathResolverModule extends  ReactContextBaseJavaModule {
                 int duration = (int)Math.ceil(
                     ((double)Integer.parseInt(m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION))) / 1000.0
                     );
-                if (title == null) {
-                    continue; // must have title
-                }
                 currMusic.putString("url", uri.toString());
-                currMusic.putString("title", title);
+                currMusic.putString("title", title == null ? fileName : title);
                 currMusic.putString("filename", fileName);
                 currMusic.putString("artist", m.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST));
                 currMusic.putInt("duration", duration);
