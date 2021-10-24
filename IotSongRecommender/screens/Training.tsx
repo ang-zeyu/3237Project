@@ -277,11 +277,12 @@ export default class Training extends React.Component<
           </View>
 
           {/* Select physical activity dropdown */}
-          <View style={{padding: 10}}>
+          <View style={styles.activityChooseView}>
             <ModalDropdown
               options={this.activity_list}
+              defaultValue={'Working'}
               onSelect={this.selectPhysicalActivity}
-              dropdownStyle={{width: '80%'}}
+              textStyle={{fontSize: 16}}
             />
           </View>
 
@@ -326,7 +327,6 @@ export default class Training extends React.Component<
             setMusicUris={(musicUris: Song[]) =>
               this.setState({trainingSongs: musicUris})
             }
-            cacheKey={'trainingSongs'}
           />
         </View>
       </SafeAreaView>
@@ -342,6 +342,7 @@ const styles = StyleSheet.create({
   musicControl: {
     padding: 7,
     margin: 3,
+    marginTop: 10,
     borderWidth: 1,
     borderColor: '#fd9e5b',
     overflow: 'hidden',
@@ -358,18 +359,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
   },
-  debugContainer: {
-    backgroundColor: '#fceebf',
+  activityChooseView: {
     padding: 10,
-  },
-  debugTitle: {
-    fontSize: 18,
-    color: 'red',
-  },
-  debugTitleActive: {
-    color: 'green',
-  },
-  debugInfo: {
-    fontSize: 14,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    backgroundColor: 'orange',
   },
 });
