@@ -3,6 +3,8 @@ import {ble} from './Ble';
 import constants from '../constants';
 const {MOTION_SENSOR} = constants;
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 /*
  Data collected for motion training
  */
@@ -46,7 +48,8 @@ export class TrainMotionData {
   }
 
   async send(activity: string) {
-    const body = {
+    // console.log(JSON.stringify(body, null, 4));
+    const body = JSON.stringify({
       id: this.id,
       gyroX: this.gyroX,
       gyroY: this.gyroY,
@@ -56,15 +59,20 @@ export class TrainMotionData {
       accelZ: this.accelZ,
       activity: activity,
       isFinal: true,
-    };
-
-    console.log(JSON.stringify(body, null, 4));
-    fetch('http://54.251.141.237:8080/add-motion-data', {
+    });
+    /*AsyncStorage.getAllKeys((err, keys) => {
+      console.log(keys);
+      AsyncStorage.getItem('...fill in...', (err, result) => {
+        console.log(result);
+      });
+    });*/
+    AsyncStorage.setItem('motion' + (new Date()).toISOString(), body); // backup
+    return fetch('http://54.251.141.237:8080/add-motion-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body,
     }).catch((err) => {
       console.log('Error sending motion data', err);
     });
