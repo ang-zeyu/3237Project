@@ -66,7 +66,11 @@ export class TrainMotionData {
         console.log(result);
       });
     });*/
-    AsyncStorage.setItem('motion' + (new Date()).toISOString(), body); // backup
+    try {
+      await AsyncStorage.setItem('motion' + (new Date()).toISOString(), body); // backup
+    } catch (ex) {
+      console.log('backup failed');
+    }
     return fetch('http://54.251.141.237:8080/add-motion-data', {
       method: 'POST',
       headers: {
@@ -75,6 +79,7 @@ export class TrainMotionData {
       body,
     }).catch((err) => {
       console.log('Error sending motion data', err);
+      return AsyncStorage.setItem('motion' + (new Date()).toISOString(), body);
     });
   }
 }
