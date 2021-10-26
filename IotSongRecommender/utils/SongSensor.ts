@@ -24,8 +24,8 @@ export class SongData {
   humidityVals: number[] = [];
   tempVals: number[] = [];
 
-  async send(moods: string[], isSkipped: boolean) {
-    const body = {
+  async send(moods: string[], isSkipped: boolean, uuid: string) {
+    const body = JSON.stringify({
       gyroX: this.gyroX,
       gyroY: this.gyroY,
       gyroZ: this.gyroZ,
@@ -37,16 +37,16 @@ export class SongData {
       humidityVals: this.humidityVals,
       moods,
       isSkipped,
-    };
-
-    console.log(JSON.stringify(body, null, 4));
+      uuid,
+    });
+    console.log(body);
     fetch('http://54.251.141.237:8080/add-song-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
-    }).catch((err) => {
+      body,
+    }).catch(err => {
       console.log('Error sending song data', err);
     });
   }

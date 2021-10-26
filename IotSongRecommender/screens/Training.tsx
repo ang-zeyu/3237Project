@@ -120,7 +120,10 @@ export default class Training extends React.Component<
       async () => {
         await stopMotionSensors(this.props.id as string);
 
-        await trainMotionData.send(this.state.activity);
+        await trainMotionData.send(
+          this.state.activity,
+          this.props.id as string,
+        );
 
         this.props.hideLoader();
       },
@@ -212,11 +215,19 @@ export default class Training extends React.Component<
           if (proportionPlayed >= MINIMUM_PROPORTION) {
             console.log('Sending prev played song data...');
             const moods = typedJson[prevSongPlayed.filename] || [];
-            await this.state.trainSongData.send(moods, false); // TODO send up the mood also
+            await this.state.trainSongData.send(
+              moods,
+              false,
+              this.props.id as string,
+            );
           } else {
             console.log('Sending prev skipped song data...');
             const moods = typedJson[prevSongPlayed.filename] || [];
-            await this.state.trainSongData.send(moods, true); // TODO send up the mood also
+            await this.state.trainSongData.send(
+              moods,
+              true,
+              this.props.id as string,
+            );
           }
         }
 
@@ -324,9 +335,14 @@ export default class Training extends React.Component<
             showLoader={this.props.showLoader}
             hideLoader={this.props.hideLoader}
             musicUris={this.state.trainingSongs}
-            setMusicUris={(musicUris: Song[]) =>
-              this.setState({trainingSongs: musicUris})
-            }
+            setMusicUris={(musicUris: Song[]) => {
+              for (const song of musicUris) {
+                if (!(song.filename in typedJson)) {
+                  console.log('missing', song.filename);
+                }
+              }
+              this.setState({trainingSongs: musicUris});
+            }}
           />
         </View>
       </SafeAreaView>

@@ -47,7 +47,7 @@ export class TrainMotionData {
     });*/
   }
 
-  async send(activity: string) {
+  async send(activity: string, uuid: string) {
     // console.log(JSON.stringify(body, null, 4));
     const body = JSON.stringify({
       id: this.id,
@@ -59,6 +59,7 @@ export class TrainMotionData {
       accelZ: this.accelZ,
       activity: activity,
       isFinal: true,
+      uuid,
     });
     /*AsyncStorage.getAllKeys((err, keys) => {
       console.log(keys);
@@ -67,7 +68,7 @@ export class TrainMotionData {
       });
     });*/
     try {
-      await AsyncStorage.setItem('motion' + (new Date()).toISOString(), body); // backup
+      await AsyncStorage.setItem('motion' + new Date().toISOString(), body); // backup
     } catch (ex) {
       console.log('backup failed');
     }
@@ -77,9 +78,9 @@ export class TrainMotionData {
         'Content-Type': 'application/json',
       },
       body,
-    }).catch((err) => {
+    }).catch(err => {
       console.log('Error sending motion data', err);
-      return AsyncStorage.setItem('motion' + (new Date()).toISOString(), body);
+      return AsyncStorage.setItem('motion' + new Date().toISOString(), body);
     });
   }
 }
