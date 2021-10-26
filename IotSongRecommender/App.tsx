@@ -1,4 +1,4 @@
-import {Platform, StatusBar} from 'react-native';
+import {Alert, PermissionsAndroid, Platform, StatusBar} from 'react-native';
 import React from 'react';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -18,6 +18,43 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Player from './screens/Player';
 import ConnectButton from './components/ConnectButton';
 
+const requestLocationPermissions = async () => {
+  const granted = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.ACCESS_BACKGROUND_LOCATION,
+    {
+      title: 'Background location permissions required for ble collection',
+      message: '"all the time" is required, not only "while using the app"',
+      buttonNegative: 'Cancel',
+      buttonPositive: 'OK',
+    },
+  );
+  const granted2 = await PermissionsAndroid.request(
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    {
+      title: 'Location permissions required for ble collection',
+      message: '"all the time" is required, not only "while using the app"',
+      buttonNegative: 'Cancel',
+      buttonPositive: 'OK',
+    },
+  );
+  if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+    console.log('Bg location permissions granted');
+  } else {
+    Alert.alert(
+      'Background location permissions denied (or insufficient level)',
+      'The app might not work properly! Please go into your app settings and make sure it is correctly set.',
+    );
+  }
+  if (granted2 === PermissionsAndroid.RESULTS.GRANTED) {
+    console.log('Location permissions granted');
+  } else {
+    Alert.alert(
+      'Background location permissions denied (or insufficient level)',
+      'The app might not work properly! Please go into your app settings and make sure it is correctly set.',
+    );
+  }
+};
+
 class App extends React.Component<
   {},
   {
@@ -27,8 +64,6 @@ class App extends React.Component<
     isTraining: boolean;
   }
 > {
-  isDarkMode = false;
-
   backgroundStyle = {
     backgroundColor: Colors.lighter,
   };
@@ -55,7 +90,10 @@ class App extends React.Component<
       },
     );
 
-    setTimeout(this.hideSpinner, 300);
+    setTimeout(() => {
+      this.hideSpinner();
+      requestLocationPermissions();
+    }, 300);
   }
 
   componentWillUnmount() {
