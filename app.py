@@ -23,8 +23,9 @@ class MotionData(db.Model):
     accelY = db.Column(JSON)
     accelZ = db.Column(JSON)
     activity = db.Column(db.String(50))
+    uuid = db.Column(db.String(50))
 
-    def __init__(self, date, gyro, accel, activity):
+    def __init__(self, date, gyro, accel, activity, uuid):
         self.date = date
         self.gyroX = gyro[0]
         self.gyroY = gyro[1]
@@ -33,6 +34,7 @@ class MotionData(db.Model):
         self.accelY = accel[1]
         self.accelZ = accel[2]
         self.activity = activity
+        self.uuid = uuid
 
 class SongData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -45,10 +47,11 @@ class SongData(db.Model):
     optical = db.Column(JSON)
     temp = db.Column(JSON)
     humidity = db.Column(JSON)
-    mood = db.Column(db.String(100))
+    moods = db.Column(JSON)
     isSkipped = db.Column(db.Boolean)
+    uuid = db.Column(db.String(50))
 
-    def __init__(self, gyro, accel, opt, temp, humidity, mood, isSkipped):
+    def __init__(self, gyro, accel, opt, temp, humidity, moods, isSkipped, uuid):
         self.gyroX = gyro[0]
         self.gyroY = gyro[1]
         self.gyroZ = gyro[2]
@@ -58,48 +61,84 @@ class SongData(db.Model):
         self.optical = opt
         self.temp = temp
         self.humidity = humidity
-        self.mood = mood
+        self.moods = moods
         self.isSkipped = isSkipped
+        self.uuid = uuid
 
 class MotionDataSchema(ma.Schema):
     class Meta:
-        fields = ('id','date','gyroX','gyroY','gyroZ','accelX','accelY','accelZ','activity')
+        fields = ('id','date','gyroX','gyroY','gyroZ','accelX','accelY','accelZ','activity', 'uuid')
 
 class SongDataSchema(ma.Schema):
     class Meta:
-        fields = ('id','gyroX','gyroY','gyroZ','accelX','accelY','accelZ','opticalVals','tempVals','humidityVals','mood','isSkipped')
+        fields = ('id','gyroX','gyroY','gyroZ','accelX','accelY','accelZ','optical','temp','humidity','moods','isSkipped', 'uuid')
 
 motion_data_schema = MotionDataSchema(many=True)
 song_data_schema = SongDataSchema(many=True)
 
 @app.route("/", methods=['GET'])
 def home():
-    return "<h2>CS3237 Project Team 18</h2><p>IoT Song Recommender</p>"
+    return "<h2>CS3237 Project Team 18</h2><p>IoT Song Recommender</p><p><a href='/get-motion-data'>View motion data</a></p><p><a href='/get-song-data'>View song data</a></p>"
 
 @app.route("/get-motion-data", methods=['GET'])
 def get_motion_data():
     all_data = MotionData.query.all()
     results = motion_data_schema.dump(all_data)
-    return jsonify(results)
+    return render_motion_data(results)
+
+def render_motion_data(results):
+    content = "<h2>Motion Data</h2><p>Total entries: %d</p><p>ID of last entry: %d</p><p>Samples from latest to oldest:</p>" % (len(results), results[-1]['id'])
+    for i in range(len(results),0,-1):
+        res = results[i - 1]
+        content += "<p style='line-height: 0.3'>{"
+        for field in sorted(res):
+            content += "<p style='line-height: 0.3'>&nbsp;&nbsp;&nbsp;&nbsp;" + field + ": "
+            if field not in ['id','date','activity']:
+                content += str(res[field][:2])[:-1] + "..." + str(res[field][-2:])[1:]
+                content += " (%d samples)" % len(res[field])
+            else:
+                content += str(res[field])
+            content += "</p>"
+        content += "}</p>"
+    return content
 
 @app.route("/get-song-data", methods=['GET'])
 def get_song_data():
     all_data = SongData.query.all()
     results = song_data_schema.dump(all_data)
-    return jsonify(results)
+    return render_song_data(results)
+
+def render_song_data(results):
+    content = "<h2>Song Data</h2><p>Total entries: %d</p><p>ID of last entry: %d</p><p>Samples from latest to oldest:</p>" % (len(results), results[-1]['id'])
+    for i in range(len(results),0,-1):
+        res = results[i - 1]
+        content += "<p style='line-height: 0.3'>{"
+        for field in sorted(res):
+            content += "<p style='line-height: 0.3'>&nbsp;&nbsp;&nbsp;&nbsp;" + field + ": "
+            if field not in ['id','moods','isSkipped']:
+                content += str(res[field][:2])[:-1] + "..." + str(res[field][-2:])[1:]
+                content += " (%d samples)" % len(res[field])
+            elif field == 'moods' and type(res[field]) is list:
+                content += str(res[field])
+            else:
+                content += str(res[field])
+            content += "</p>"
+        content += "}</p>"
+    return content
 
 @app.route("/add-motion-data", methods=['POST'])
 def add_motion_data():
     gyro, accel = [], []
 
     date = request.json['id'] # single value
-    gyro.append(request.json['gyroX'])
+    gyro.append(request.json['gyroX']) # JSON
     gyro.append(request.json['gyroY'])
     gyro.append(request.json['gyroZ'])
     accel.append(request.json['accelX'])
     accel.append(request.json['accelY'])
     accel.append(request.json['accelZ'])
     activity = request.json['activity']
+    uuid = request.json['uuid']
 
     results = {
         'date': date,
@@ -109,10 +148,11 @@ def add_motion_data():
         'accelX': accel[0],
         'accelY': accel[1],
         'accelZ': accel[2],
-        'activity': activity
+        'activity': activity,
+        'uuid': uuid
     }
 
-    data = MotionData(date, gyro, accel, activity)
+    data = MotionData(date, gyro, accel, activity, uuid)
     db.session.add(data)
     db.session.commit()
 
@@ -131,8 +171,9 @@ def add_song_data():
     opt = request.json['opticalVals']
     temp = request.json['tempVals']
     humidity = request.json['humidityVals']
-    mood = request.json['mood']
+    moods = request.json['moods']
     isSkipped = request.json['isSkipped']
+    uuid = request.json['uuid']
 
     results = {
         'gyroX': gyro[0],
@@ -144,11 +185,12 @@ def add_song_data():
         'opticalVals': opt,
         'tempVals': temp,
         'humidityVals': humidity,
-        'mood': mood,
-        'isSkipped': isSkipped
+        'moods': moods,
+        'isSkipped': isSkipped,
+        'uuid': uuid
     }
 
-    data = SongData(gyro, accel, opt, temp, humidity, mood, isSkipped)
+    data = SongData(gyro, accel, opt, temp, humidity, moods, isSkipped, uuid)
     db.session.add(data)
     db.session.commit()
 
