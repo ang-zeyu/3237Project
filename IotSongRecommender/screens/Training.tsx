@@ -252,10 +252,6 @@ export default class Training extends React.Component<
   handleFfwdButton = async () => {
     await TrackPlayer.pause();
     const currPos = await TrackPlayer.getPosition();
-    if (currPos < 10) {
-      await TrackPlayer.play();
-      return;
-    }
     const currTrack = await TrackPlayer.getCurrentTrack();
     const currSong = await TrackPlayer.getTrack(currTrack);
     await TrackPlayer.seekTo(Math.max((currSong.duration || 0) - 3, currPos));
