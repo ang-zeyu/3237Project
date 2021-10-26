@@ -249,6 +249,19 @@ export default class Training extends React.Component<
     await TrackPlayer.skipToNext();
   };
 
+  handleFfwdButton = async () => {
+    await TrackPlayer.pause();
+    const currPos = await TrackPlayer.getPosition();
+    if (currPos < 10) {
+      await TrackPlayer.play();
+      return;
+    }
+    const currTrack = await TrackPlayer.getCurrentTrack();
+    const currSong = await TrackPlayer.getTrack(currTrack);
+    await TrackPlayer.seekTo(Math.max((currSong.duration || 0) - 3, currPos));
+    await TrackPlayer.play();
+  };
+
   stopSongTraining = async () => {
     this.state.trainSongPlayerEventSub?.remove();
     await TrackPlayer.reset();
@@ -327,6 +340,20 @@ export default class Training extends React.Component<
                   color={'orange'}
                 />
               </Pressable>
+              <Pressable
+                style={({pressed}) => [
+                  styles.musicControl,
+                  {borderColor: '#69f51d'},
+                  (pressed && {backgroundColor: '#01bd1c'}) || {},
+                ]}
+                onPress={this.handleFfwdButton}
+                disabled={!this.props.id}>
+                <Ionicons
+                  name={'checkmark-done-outline'}
+                  size={28}
+                  color={'green'}
+                />
+              </Pressable>
             </View>
           </View>
 
@@ -352,6 +379,8 @@ export default class Training extends React.Component<
 
 const styles = StyleSheet.create({
   musicControlsContainer: {
+    display: 'flex',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
   },
