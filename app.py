@@ -90,10 +90,10 @@ def render_motion_data(results):
     content = "<h2>Motion Data</h2><p>Total entries: %d</p><p>ID of last entry: %d</p><p>Samples from latest to oldest:</p>" % (len(results), results[-1]['id'])
     for i in range(len(results),0,-1):
         res = results[i - 1]
-        content += "<p style='line-height: 0.3'>{"
+        content += "<p style='line-height: 1'>{"
         for field in sorted(res):
-            content += "<p style='line-height: 0.3'>&nbsp;&nbsp;&nbsp;&nbsp;" + field + ": "
-            if field not in ['id','date','activity']:
+            content += "<p style='line-height: 1'>&nbsp;&nbsp;&nbsp;&nbsp;" + field + ": "
+            if field not in ['id','date','activity','uuid']:
                 content += str(res[field][:2])[:-1] + "..." + str(res[field][-2:])[1:]
                 content += " (%d samples)" % len(res[field])
             else:
@@ -112,10 +112,10 @@ def render_song_data(results):
     content = "<h2>Song Data</h2><p>Total entries: %d</p><p>ID of last entry: %d</p><p>Samples from latest to oldest:</p>" % (len(results), results[-1]['id'])
     for i in range(len(results),0,-1):
         res = results[i - 1]
-        content += "<p style='line-height: 0.3'>{"
+        content += "<p style='line-height:1'>{"
         for field in sorted(res):
-            content += "<p style='line-height: 0.3'>&nbsp;&nbsp;&nbsp;&nbsp;" + field + ": "
-            if field not in ['id','moods','isSkipped']:
+            content += "<p style='line-height:1'>&nbsp;&nbsp;&nbsp;&nbsp;" + field + ": "
+            if field not in ['id','moods','isSkipped','uuid']:
                 content += str(res[field][:2])[:-1] + "..." + str(res[field][-2:])[1:]
                 content += " (%d samples)" % len(res[field])
             elif field == 'moods' and type(res[field]) is list:
