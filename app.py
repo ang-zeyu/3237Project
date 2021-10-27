@@ -65,16 +65,38 @@ class SongData(db.Model):
         self.isSkipped = isSkipped
         self.uuid = uuid
 
+
+class PlayerSongData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200))
+    moods = db.Column(JSON)
+    uuid = db.Column(db.String(50))
+
+    def __init__(self, title, moods, uuid):
+        self.title = title
+        self.moods = moods
+        self.uuid = uuid
+
+
 class MotionDataSchema(ma.Schema):
     class Meta:
         fields = ('id','date','gyroX','gyroY','gyroZ','accelX','accelY','accelZ','activity', 'uuid')
+
 
 class SongDataSchema(ma.Schema):
     class Meta:
         fields = ('id','gyroX','gyroY','gyroZ','accelX','accelY','accelZ','optical','temp','humidity','moods','isSkipped', 'uuid')
 
+
+class PlayerSongSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'title', 'moods', 'uuid')
+
+
 motion_data_schema = MotionDataSchema(many=True)
 song_data_schema = SongDataSchema(many=True)
+player_song_schema = PlayerSongSchema(many=True, exclude=['id', 'uuid'])
+
 
 @app.route("/", methods=['GET'])
 def home():
@@ -195,6 +217,27 @@ def add_song_data():
     db.session.commit()
 
     return jsonify(results)
+
+
+@app.route("/get-player-song-data/<uuid>", methods=['GET'])
+def get_player_song_data(uuid):
+    all_data = PlayerSongData.query.filter(PlayerSongData.uuid == uuid).all()
+    results = player_song_schema.dump(all_data)
+    return jsonify(results)
+
+
+@app.route("/post-player-song-data", methods=['POST'])
+def post_player_song_data():
+    title = request.json['title']
+    moods = request.json['moods']
+    uuid = request.json['uuid']
+
+    data = PlayerSongData(title, moods, uuid)
+    db.session.add(data)
+    db.session.commit()
+
+    return jsonify(success=True)
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
