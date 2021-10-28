@@ -232,8 +232,12 @@ def post_player_song_data():
     moods = request.json['moods']
     uuid = request.json['uuid']
 
-    data = PlayerSongData(title, moods, uuid)
-    db.session.add(data)
+    existing = PlayerSongData.query.filter(PlayerSongData.title == title and PlayerSongData.uuid == uuid).first()
+    if existing is None:
+        data = PlayerSongData(title, moods, uuid)
+        db.session.add(data)
+    else:
+        existing.moods = moods
     db.session.commit()
 
     return jsonify(success=True)
