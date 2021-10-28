@@ -244,7 +244,7 @@ def post_player_song_data():
 
 
 @app.route("/predict-song", methods=['POST'])
-def post_player_song_data():
+def predict_song():
     gyroX = request.json['gyroX']
     gyroY = request.json['gyroY']
     gyroZ = request.json['gyroZ']
