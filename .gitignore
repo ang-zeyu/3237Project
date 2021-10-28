@@ -1,1 +1,4 @@
 .idea
+IotSongRecommender/flask/
+.ipynb_checkpoints/
+song_data.csv
