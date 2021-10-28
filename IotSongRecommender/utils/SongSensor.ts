@@ -138,12 +138,19 @@ async function stopSongSensors(sensorId: string) {
     HUMIDITY_SENSOR.SERVICE_UUID,
     HUMIDITY_SENSOR.DATA_UUID,
   );
-}
 
-async function stopSongDataGathering(sensorId: string) {
-  await stopMotionSensors(sensorId);
-  await stopSongSensors(sensorId);
-  console.log('Song sensors stopped!');
+  await ble.write(
+    sensorId,
+    OPTICAL_SENSOR.SERVICE_UUID,
+    OPTICAL_SENSOR.CTRL_UUID,
+    [0],
+  );
+  await ble.write(
+    sensorId,
+    HUMIDITY_SENSOR.SERVICE_UUID,
+    HUMIDITY_SENSOR.CTRL_UUID,
+    [0],
+  );
 }
 
 const SONG_DATA_DURATION = 3000; // ms
@@ -156,20 +163,23 @@ async function songDataCountdownStarter(
   }
 
   await configureMotionSensors(sensorId);
-  await configureSongSensors(sensorId);
 
   // Returns a function that initiates the data collection countdown
   return () => {
     return new Promise<void>((resolve, reject) => {
       BackgroundTimer.setTimeout(async () => {
-        try {
-          await stopSongDataGathering(sensorId);
-        } catch (e) {
-          console.error(e);
-          resolve();
-        }
+        await stopMotionSensors(sensorId);
+        await configureSongSensors(sensorId);
+        BackgroundTimer.setTimeout(async () => {
+          try {
+            await stopSongSensors(sensorId);
+          } catch (e) {
+            console.error(e);
+            resolve();
+          }
 
-        resolve();
+          resolve();
+        }, SONG_DATA_DURATION);
       }, SONG_DATA_DURATION);
     });
   };

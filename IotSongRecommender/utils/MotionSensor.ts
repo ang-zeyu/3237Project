@@ -142,5 +142,12 @@ export async function stopMotionSensors(sensorId: string) {
     MOTION_SENSOR.DATA_UUID,
   );
 
+  await ble.write(
+    sensorId,
+    MOTION_SENSOR.SERVICE_UUID,
+    MOTION_SENSOR.CTRL_UUID,
+    [0, 0],
+  );
+
   // this.setState({motionSensor: undefined});
 }
