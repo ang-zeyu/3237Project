@@ -277,8 +277,8 @@ export default class Training extends React.Component<
 
   render() {
     return (
-      <SafeAreaView style={this.props.style}>
-        <View style={this.props.style}>
+      <SafeAreaView style={[this.props.style, {flex: 1}]}>
+        <View style={[this.props.style, {flex: 1}]}>
           {/* Start or Stop training motion button */}
           <View style={{padding: 10}}>
             {this.state.trainMotionData ? (
@@ -359,12 +359,14 @@ export default class Training extends React.Component<
             hideLoader={this.props.hideLoader}
             musicUris={this.state.trainingSongs}
             setMusicUris={(musicUris: Song[]) => {
-              for (const song of musicUris) {
-                if (!(song.filename in typedJson)) {
-                  console.log('missing', song.filename);
+              return new Promise(resolve => {
+                for (const song of musicUris) {
+                  if (!(song.filename in typedJson)) {
+                    console.log('missing', song.filename);
+                  }
                 }
-              }
-              this.setState({trainingSongs: musicUris});
+                this.setState({trainingSongs: musicUris}, resolve);
+              });
             }}
           />
         </View>
