@@ -243,5 +243,30 @@ def post_player_song_data():
     return jsonify(success=True)
 
 
+@app.route("/predict-song", methods=['POST'])
+def post_player_song_data():
+    gyroX = request.json['gyroX']
+    gyroY = request.json['gyroY']
+    gyroZ = request.json['gyroZ']
+    accelX = request.json['accelX']
+    accelY = request.json['accelY']
+    accelZ = request.json['accelZ']
+    opticalVals = request.json['opticalVals']
+    tempVals = request.json['tempVals']
+    humidityVals = request.json['humidityVals']
+    uuid = request.json['uuid']
+
+    # ---------------------------
+    # Prediction code
+
+    # ---------------------------
+
+    dummyResponse = {
+        'moods': ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Depressive', 'Elegant', 'Passionate', 'Warm']
+    }
+
+    return jsonify(dummyResponse)
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
