@@ -8,6 +8,7 @@ import {ble} from './Ble';
 
 import constants from '../constants';
 import {configureMotionSensors, stopMotionSensors} from './MotionSensor';
+import { createCharacteristicUpdateListener } from "./Sensor";
 const {OPTICAL_SENSOR, HUMIDITY_SENSOR} = constants;
 
 export class SongData {
@@ -24,7 +25,7 @@ export class SongData {
   humidityVals: number[] = [];
   tempVals: number[] = [];
 
-  async send(moods: string[], isSkipped: boolean, uuid: string) {
+  async sendForTraining(moods: string[], isSkipped: boolean, uuid: string) {
     const body = JSON.stringify({
       gyroX: this.gyroX,
       gyroY: this.gyroY,
@@ -49,6 +50,31 @@ export class SongData {
     }).catch(err => {
       console.log('Error sending song data', err);
     });
+  }
+
+  async sendForPrediction(uuid: string): Promise<{
+    moods: string[];
+  }> {
+    const body = JSON.stringify({
+      gyroX: this.gyroX,
+      gyroY: this.gyroY,
+      gyroZ: this.gyroZ,
+      accelX: this.accelX,
+      accelY: this.accelY,
+      accelZ: this.accelZ,
+      opticalVals: this.opticalVals,
+      tempVals: this.tempVals,
+      humidityVals: this.humidityVals,
+      uuid,
+    });
+    console.log(body);
+    return fetch('http://54.251.141.237:8080/predict-song', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body,
+    }).then(res => res.json());
   }
 }
 
@@ -122,7 +148,7 @@ async function stopSongDataGathering(sensorId: string) {
 
 const SONG_DATA_DURATION = 3000; // ms
 
-export async function gatherSongData(
+async function songDataCountdownStarter(
   sensorId: string,
 ): Promise<() => Promise<void>> {
   if (!sensorId) {
@@ -147,4 +173,37 @@ export async function gatherSongData(
       }, SONG_DATA_DURATION);
     });
   };
+}
+
+export async function gatherSongData(
+  sensorId: string,
+  beforeCountdownStart: (songData: SongData) => Promise<void>,
+): Promise<void> {
+  console.log('Gathering song data...');
+  const countdown = await songDataCountdownStarter(sensorId);
+
+  const songData = new SongData();
+  const songCharacteristicsUnsub = createCharacteristicUpdateListener(
+    (gyroX, gyroY, gyroZ, accelX, accelY, accelZ) => {
+      songData.gyroX.push(gyroX);
+      songData.gyroY.push(gyroY);
+      songData.gyroZ.push(gyroZ);
+      songData.accelX.push(accelX);
+      songData.accelY.push(accelY);
+      songData.accelZ.push(accelZ);
+    },
+    opticalVal => {
+      songData.opticalVals.push(opticalVal);
+    },
+    (temp, humidity) => {
+      songData.tempVals.push(temp);
+      songData.humidityVals.push(humidity);
+    },
+  );
+
+  await beforeCountdownStart(songData);
+
+  await countdown();
+  songCharacteristicsUnsub();
+  console.log('Gathered song data...');
 }

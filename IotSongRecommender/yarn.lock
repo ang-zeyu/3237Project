@@ -5847,6 +5847,11 @@
   dependencies:
     "warn-once" "^0.1.0"
 
+"react-native-sectioned-multi-select@^0.8.1":
+  "integrity" "sha512-iH/5PHBo64yFhKzjd+6sCG0aEvgDnUwpn3I7R0ohcGo/+gJdw47mYmJMTwJTmR9JqBFXHx+2bkQi4ij2ghfqRQ=="
+  "resolved" "https://registry.npmjs.org/react-native-sectioned-multi-select/-/react-native-sectioned-multi-select-0.8.1.tgz"
+  "version" "0.8.1"
+
 "react-native-track-player@^2.1.1":
   "integrity" "sha512-N+hilbML2O/H+29yoQY3OfMCggFwoab5TkfXbuD5NMJVa2iDnzL68BQ/Arz0nKp0eKbXitdcWS9Qg1MYUqJXTg=="
   "resolved" "https://registry.npmjs.org/react-native-track-player/-/react-native-track-player-2.1.1.tgz"

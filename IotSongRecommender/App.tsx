@@ -200,7 +200,6 @@ class App extends React.Component<
           <Tab.Screen name={'Player'}>
             {() => (
               <Player
-                style={this.backgroundStyle}
                 id={this.state.id}
                 isTraining={this.state.isTraining}
                 showLoader={this.showSpinner}

@@ -1,61 +1,296 @@
-import {Button, SafeAreaView, Text, View} from 'react-native';
-import React, {useState} from 'react';
+import {
+  Alert,
+  Button,
+  EmitterSubscription,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
+import React from 'react';
 import MusicChooser, {Song} from '../components/MusicChooser';
 
 import TrackPlayer from 'react-native-track-player';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import SectionedMultiSelect from 'react-native-sectioned-multi-select';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {gatherSongData, SongData} from '../utils/SongSensor';
+import {Event as TrackPlayerEvent} from 'react-native-track-player/lib/interfaces';
+import MoodIcons from '../components/MoodIcons';
 
-export default function Player(props: {
-  style: {backgroundColor: any};
-  id: string | undefined;
-  isTraining: boolean;
-  showLoader: (cb?: any) => void;
-  hideLoader: (cb?: any) => void;
-}) {
-  const [musicUris, setMusicUris]: [Song[], any] = useState([]);
+const MOODS = [
+  {
+    name: 'Moods',
+    id: 0,
+    children: [
+      {name: 'Aggressive'},
+      {name: 'Athletic'},
+      {name: 'Atmospheric'},
+      {name: 'Elegant'},
+      {name: 'Warm'},
+      {name: 'Depressive'},
+      {name: 'Celebratory'},
+      {name: 'Passionate'},
+    ],
+  },
+];
 
-  function startAutoplay() {
-    // TODO
-    // 1. call gatherSongData()
-    //   1.1 The result from the gather songData call need to be sent to the other API
-    // 2. Add the track to playqueue and play it
-    // 3. When song ends (event handlers need to be attached)
-    //,
-    // Also, possibly need to differentiate event handlers in TrackPlayer singleton
+export default class Player extends React.Component<
+  {
+    id: string | undefined;
+    isTraining: boolean;
+    showLoader: (cb?: any) => void;
+    hideLoader: (cb?: any) => void;
+  },
+  {
+    songs: Song[];
+    songAutoplayQueueEndSub?: EmitterSubscription;
+    currOrLastAutoplaySong?: Song;
+
+    // Labelling
+    selectRef: React.RefObject<any>;
+    currentSelectedSong?: Song;
+    currentSelectedMoods?: string[];
+  }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = {
+      selectRef: React.createRef(),
+      songs: [],
+    };
   }
 
-  if (!props.id) {
-    //return <Text>The sensor needs to be enabled first!</Text>;
-  } else if (props.isTraining) {
-    return <Text>Training in progress!</Text>;
-  }
+  recommendNextSong: () => Promise<void> = () => {
+    return new Promise(resolve => {
+      this.props.showLoader(async () => {
+        let predictionSongData: SongData | undefined;
+        await gatherSongData(this.props.id as string, async songData => {
+          predictionSongData = songData;
+        });
 
-  // Just for testing
-  const songClickHandler = async (item: Song) => {
-    for (let i = 0; i < 100; i++) {
-      await TrackPlayer.add(item);
-    }
+        if (!predictionSongData) {
+          console.error('No predictionSongData, aborting recommendation');
+          return;
+        }
+
+        try {
+          const result = await predictionSongData.sendForPrediction(
+            this.props.id as string,
+          );
+
+          const moodsSet = new Set(result.moods);
+          const candidateSongs = this.state.songs.filter(song => {
+            return (
+              // For now
+              song.moods?.length && song.moods.some(mood => moodsSet.has(mood))
+            );
+          });
+
+          if (candidateSongs.length) {
+            const randIdx = Math.floor(Math.random() * candidateSongs.length);
+            const recommendation = candidateSongs[randIdx];
+
+            await TrackPlayer.add(recommendation);
+            await TrackPlayer.play();
+            this.setState({currOrLastAutoplaySong: recommendation});
+          } else {
+            Alert.alert('No labelled songs found');
+          }
+        } catch (ex) {
+          console.log('Error sending song data for prediction', ex);
+        }
+
+        this.props.hideLoader(resolve);
+      });
+    });
+  };
+
+  startSongAutoplay = async () => {
+    // -------------------------------------------------------------------------
+    await TrackPlayer.reset();
+    console.log('Track player reset, startSongAutoplay');
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    const songAutoplayQueueEndSub = TrackPlayer.addEventListener(
+      TrackPlayerEvent.PlaybackQueueEnded,
+      async (data: {track?: number; position: number}) => {
+        console.log('Playback Queue Ended! Event data:\n', data);
+
+        await this.recommendNextSong();
+      },
+    );
+    // -------------------------------------------------------------------------
+
+    this.setState({songAutoplayQueueEndSub});
     await TrackPlayer.play();
   };
 
-  return (
-    <SafeAreaView style={props.style}>
-      <View style={props.style}>
+  stopSongAutoplay = () => {
+    this.props.showLoader(async () => {
+      this.state.songAutoplayQueueEndSub?.remove();
+      await TrackPlayer.reset();
+
+      this.setState(
+        {songAutoplayQueueEndSub: undefined},
+        this.props.hideLoader,
+      );
+    });
+  };
+
+  getSongKey(song: Song): string {
+    // Add duration to lessen collisions
+    return `${song.filename}--${song.duration}`;
+  }
+
+  songClickHandler = (song: Song) => {
+    this.setState(
+      {
+        currentSelectedSong: song,
+        currentSelectedMoods: song.moods,
+      },
+      () => {
+        this.state.selectRef && this.state.selectRef.current._toggleSelector();
+      },
+    );
+  };
+
+  onSelectChange = (currentSelectedMoods: unknown[]) => {
+    this.setState({
+      currentSelectedMoods: currentSelectedMoods as string[],
+    });
+  };
+
+  onSelectCancel = () => {
+    this.setState({
+      currentSelectedSong: undefined,
+      currentSelectedMoods: [],
+    });
+  };
+
+  onSelectConfirm = () => {
+    this.props.showLoader(async () => {
+      if (!this.state.currentSelectedSong) {
+        this.props.hideLoader();
+        return;
+      }
+
+      const moods = this.state.currentSelectedMoods;
+      const body = {
+        title: this.getSongKey(this.state.currentSelectedSong as Song),
+        moods,
+        uuid: this.props.id,
+      };
+
+      try {
+        await fetch('http://54.251.141.237:8080/post-player-song-data', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+        this.state.currentSelectedSong.moods = this.state.currentSelectedMoods;
+      } catch (ex) {
+        Alert.alert('API failed', 'Failed to label song with moods');
+      } finally {
+        this.setState({
+          currentSelectedSong: undefined,
+          currentSelectedMoods: [],
+        });
+        this.props.hideLoader();
+      }
+    });
+  };
+
+  onSongFolderChosen = async (folderSongs: Song[]) => {
+    let userSongMoodsMap: {[titleAndDuration: string]: string[]} =
+      Object.create(null);
+    try {
+      const userSongMoods: {
+        title: string;
+        moods: string[];
+      }[] = await (
+        await fetch(
+          `http://54.251.141.237:8080/get-player-song-data/${this.props.id}`,
+        )
+      ).json();
+
+      for (const userSongMood of userSongMoods) {
+        userSongMoodsMap[userSongMood.title] = userSongMood.moods;
+      }
+    } catch (ex) {
+      Alert.alert('Unable to retrieve song moods');
+      return;
+    }
+
+    for (const folderSong of folderSongs) {
+      folderSong.moods = userSongMoodsMap[this.getSongKey(folderSong)] || [];
+    }
+
+    this.setState({songs: folderSongs});
+
+    console.log('Picked and retrieve player song moods');
+  };
+
+  render() {
+    if (!this.props.id) {
+      return <Text>The sensor needs to be enabled first!</Text>;
+    } else if (this.props.isTraining) {
+      return <Text>Training in progress!</Text>;
+    }
+
+    return (
+      <View style={{backgroundColor: Colors.lighter, flex: 1}}>
+        <SectionedMultiSelect
+          ref={this.state.selectRef}
+          items={MOODS}
+          IconRenderer={Icon}
+          uniqueKey="name"
+          subKey="children"
+          hideSelect={true}
+          hideSearch={true}
+          selectText="Choose song moods..."
+          showChips={false}
+          showDropDowns={false}
+          showCancelButton={true}
+          readOnlyHeadings={true}
+          selectedItems={this.state.currentSelectedMoods}
+          onSelectedItemsChange={this.onSelectChange}
+          onConfirm={this.onSelectConfirm}
+          onCancel={this.onSelectCancel}
+        />
         <View style={{padding: 10}}>
-          <Button
-            title={'Start Autoplay'}
-            onPress={startAutoplay}
-            disabled={!musicUris.length}
-          />
+          {this.state.songAutoplayQueueEndSub ? (
+            <Button title={'Stop Autoplay'} onPress={this.stopSongAutoplay} />
+          ) : (
+            <Button
+              title={'Start Autoplay'}
+              onPress={this.startSongAutoplay}
+              disabled={!this.state.songs.length}
+            />
+          )}
         </View>
 
+        {this.state.currOrLastAutoplaySong ? (
+          <View style={{padding: 10, flexDirection: 'row'}}>
+            <View style={{flex: 1}}>
+              <Text>{this.state.currOrLastAutoplaySong.title}</Text>
+              <Text>{this.state.currOrLastAutoplaySong.artist}</Text>
+            </View>
+            <MoodIcons song={this.state.currOrLastAutoplaySong} />
+          </View>
+        ) : null}
+
         <MusicChooser
-          showLoader={props.showLoader}
-          hideLoader={props.hideLoader}
-          onClick={songClickHandler}
-          musicUris={musicUris}
-          setMusicUris={setMusicUris}
+          showMoods={true}
+          showLoader={this.props.showLoader}
+          hideLoader={this.props.hideLoader}
+          onClick={this.songClickHandler}
+          musicUris={this.state.songs}
+          setMusicUris={this.onSongFolderChosen}
         />
       </View>
-    </SafeAreaView>
-  );
+    );
+  }
 }
