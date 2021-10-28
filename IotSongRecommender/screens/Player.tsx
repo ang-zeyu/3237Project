@@ -1,4 +1,11 @@
-import {Alert, Button, EmitterSubscription, Text, View} from 'react-native';
+import {
+  Alert,
+  Button,
+  EmitterSubscription,
+  Pressable,
+  Text,
+  View,
+} from 'react-native';
 import React from 'react';
 import MusicChooser, {Song} from '../components/MusicChooser';
 
@@ -8,6 +15,7 @@ import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {gatherSongData, SongData} from '../utils/SongSensor';
 import {Event as TrackPlayerEvent} from 'react-native-track-player/lib/interfaces';
+import MoodIcons from '../components/MoodIcons';
 
 const MOODS = [
   {
@@ -36,7 +44,9 @@ export default class Player extends React.Component<
   {
     songs: Song[];
     songAutoplayQueueEndSub?: EmitterSubscription;
+    currOrLastAutoplaySong?: Song;
 
+    // Labelling
     selectRef: React.RefObject<any>;
     currentSelectedSong?: Song;
     currentSelectedMoods?: string[];
@@ -71,15 +81,21 @@ export default class Player extends React.Component<
           const moodsSet = new Set(result.moods);
           const candidateSongs = this.state.songs.filter(song => {
             return (
+              // For now
               song.moods?.length && song.moods.some(mood => moodsSet.has(mood))
             );
           });
 
-          const randIdx = Math.floor(Math.random() * candidateSongs.length);
-          const recommendation = candidateSongs[randIdx];
+          if (candidateSongs.length) {
+            const randIdx = Math.floor(Math.random() * candidateSongs.length);
+            const recommendation = candidateSongs[randIdx];
 
-          await TrackPlayer.add(recommendation);
-          await TrackPlayer.play();
+            await TrackPlayer.add(recommendation);
+            await TrackPlayer.play();
+            this.setState({currOrLastAutoplaySong: recommendation});
+          } else {
+            Alert.alert('No labelled songs found');
+          }
         } catch (ex) {
           console.log('Error sending song data for prediction', ex);
         }
@@ -115,7 +131,10 @@ export default class Player extends React.Component<
       this.state.songAutoplayQueueEndSub?.remove();
       await TrackPlayer.reset();
 
-      this.setState({songAutoplayQueueEndSub: undefined});
+      this.setState(
+        {songAutoplayQueueEndSub: undefined},
+        this.props.hideLoader,
+      );
     });
   };
 
@@ -241,7 +260,6 @@ export default class Player extends React.Component<
           onConfirm={this.onSelectConfirm}
           onCancel={this.onSelectCancel}
         />
-
         <View style={{padding: 10}}>
           {this.state.songAutoplayQueueEndSub ? (
             <Button title={'Stop Autoplay'} onPress={this.stopSongAutoplay} />
@@ -253,6 +271,16 @@ export default class Player extends React.Component<
             />
           )}
         </View>
+
+        {this.state.currOrLastAutoplaySong ? (
+          <View style={{padding: 10, flexDirection: 'row'}}>
+            <View style={{flex: 1}}>
+              <Text>{this.state.currOrLastAutoplaySong.title}</Text>
+              <Text>{this.state.currOrLastAutoplaySong.artist}</Text>
+            </View>
+            <MoodIcons song={this.state.currOrLastAutoplaySong} />
+          </View>
+        ) : null}
 
         <MusicChooser
           showMoods={true}

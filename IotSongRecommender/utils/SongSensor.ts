@@ -74,7 +74,7 @@ export class SongData {
         'Content-Type': 'application/json',
       },
       body,
-    });
+    }).then(res => res.json());
   }
 }
 
