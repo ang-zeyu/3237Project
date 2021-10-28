@@ -130,45 +130,15 @@ export default class Training extends React.Component<
     );
   };
 
-  testGatherSongData = async () => {
-    await this.gatherSongBurst();
-    this.setState({trainSongData: undefined});
-  };
-
   gatherSongBurst: () => Promise<void> = () => {
     return new Promise(resolve => {
       this.props.showLoader(async () => {
-        console.log('Gathering song data...');
-        const countdown = await gatherSongData(this.props.id as string);
-
-        const trainSongData = new SongData();
-        const trainSongCharUnsub = createCharacteristicUpdateListener(
-          (gyroX, gyroY, gyroZ, accelX, accelY, accelZ) => {
-            trainSongData.gyroX.push(gyroX);
-            trainSongData.gyroY.push(gyroY);
-            trainSongData.gyroZ.push(gyroZ);
-            trainSongData.accelX.push(accelX);
-            trainSongData.accelY.push(accelY);
-            trainSongData.accelZ.push(accelZ);
-          },
-          opticalVal => {
-            trainSongData.opticalVals.push(opticalVal);
-          },
-          (temp, humidity) => {
-            trainSongData.tempVals.push(temp);
-            trainSongData.humidityVals.push(humidity);
-          },
-        );
-
-        this.setState({trainSongData}, async () => {
-          await countdown();
-
-          this.props.hideLoader();
-          trainSongCharUnsub();
-          console.log('Gathered song data...');
-
-          resolve();
+        await gatherSongData(this.props.id as string, trainSongData => {
+          return new Promise(resolve =>
+            this.setState({trainSongData}, resolve),
+          );
         });
+        this.props.hideLoader(resolve);
       });
     });
   };
@@ -208,26 +178,26 @@ export default class Training extends React.Component<
           console.log(proportionPlayed);
 
           if (!this.state.trainSongData) {
-            throw new Error('No trainSongData defined');
-          }
-
-          const MINIMUM_PROPORTION = 0.5;
-          if (proportionPlayed >= MINIMUM_PROPORTION) {
-            console.log('Sending prev played song data...');
-            const moods = typedJson[prevSongPlayed.filename] || [];
-            await this.state.trainSongData.send(
-              moods,
-              false,
-              this.props.id as string,
-            );
+            console.log('No trainSongData defined');
           } else {
-            console.log('Sending prev skipped song data...');
-            const moods = typedJson[prevSongPlayed.filename] || [];
-            await this.state.trainSongData.send(
-              moods,
-              true,
-              this.props.id as string,
-            );
+            const MINIMUM_PROPORTION = 0.5;
+            if (proportionPlayed >= MINIMUM_PROPORTION) {
+              console.log('Sending prev played song data...');
+              const moods = typedJson[prevSongPlayed.filename] || [];
+              await this.state.trainSongData.sendForTraining(
+                moods,
+                false,
+                this.props.id as string,
+              );
+            } else {
+              console.log('Sending prev skipped song data...');
+              const moods = typedJson[prevSongPlayed.filename] || [];
+              await this.state.trainSongData.sendForTraining(
+                moods,
+                true,
+                this.props.id as string,
+              );
+            }
           }
         }
 

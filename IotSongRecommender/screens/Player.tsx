@@ -1,10 +1,13 @@
-import {Alert, Button, Text, View} from 'react-native';
+import {Alert, Button, EmitterSubscription, Text, View} from 'react-native';
 import React from 'react';
 import MusicChooser, {Song} from '../components/MusicChooser';
 
+import TrackPlayer from 'react-native-track-player';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {gatherSongData, SongData} from '../utils/SongSensor';
+import {Event as TrackPlayerEvent} from 'react-native-track-player/lib/interfaces';
 
 const MOODS = [
   {
@@ -32,6 +35,7 @@ export default class Player extends React.Component<
   },
   {
     songs: Song[];
+    songAutoplayQueueEndSub?: EmitterSubscription;
 
     selectRef: React.RefObject<any>;
     currentSelectedSong?: Song;
@@ -46,12 +50,79 @@ export default class Player extends React.Component<
     };
   }
 
+  recommendNextSong: () => Promise<void> = () => {
+    return new Promise(resolve => {
+      this.props.showLoader(async () => {
+        let predictionSongData: SongData | undefined;
+        await gatherSongData(this.props.id as string, async songData => {
+          predictionSongData = songData;
+        });
+
+        if (!predictionSongData) {
+          console.error('No predictionSongData, aborting recommendation');
+          return;
+        }
+
+        try {
+          const result = await predictionSongData.sendForPrediction(
+            this.props.id as string,
+          );
+
+          const moodsSet = new Set(result.moods);
+          const candidateSongs = this.state.songs.filter(song => {
+            return (
+              song.moods?.length && song.moods.some(mood => moodsSet.has(mood))
+            );
+          });
+
+          const randIdx = Math.floor(Math.random() * candidateSongs.length);
+          const recommendation = candidateSongs[randIdx];
+
+          await TrackPlayer.add(recommendation);
+          await TrackPlayer.play();
+        } catch (ex) {
+          console.log('Error sending song data for prediction', ex);
+        }
+
+        this.props.hideLoader(resolve);
+      });
+    });
+  };
+
+  startSongAutoplay = async () => {
+    // -------------------------------------------------------------------------
+    await TrackPlayer.reset();
+    console.log('Track player reset, startSongAutoplay');
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    const songAutoplayQueueEndSub = TrackPlayer.addEventListener(
+      TrackPlayerEvent.PlaybackQueueEnded,
+      async (data: {track?: number; position: number}) => {
+        console.log('Playback Queue Ended! Event data:\n', data);
+
+        await this.recommendNextSong();
+      },
+    );
+    // -------------------------------------------------------------------------
+
+    this.setState({songAutoplayQueueEndSub});
+    await TrackPlayer.play();
+  };
+
+  stopSongAutoplay = () => {
+    this.props.showLoader(async () => {
+      this.state.songAutoplayQueueEndSub?.remove();
+      await TrackPlayer.reset();
+
+      this.setState({songAutoplayQueueEndSub: undefined});
+    });
+  };
+
   getSongKey(song: Song): string {
     // Add duration to lessen collisions
     return `${song.filename}--${song.duration}`;
   }
-
-  startAutoplay = () => {};
 
   songClickHandler = (song: Song) => {
     this.setState(
@@ -172,11 +243,15 @@ export default class Player extends React.Component<
         />
 
         <View style={{padding: 10}}>
-          <Button
-            title={'Start Autoplay'}
-            onPress={this.startAutoplay}
-            disabled={!this.state.songs.length}
-          />
+          {this.state.songAutoplayQueueEndSub ? (
+            <Button title={'Stop Autoplay'} onPress={this.stopSongAutoplay} />
+          ) : (
+            <Button
+              title={'Start Autoplay'}
+              onPress={this.startSongAutoplay}
+              disabled={!this.state.songs.length}
+            />
+          )}
         </View>
 
         <MusicChooser
