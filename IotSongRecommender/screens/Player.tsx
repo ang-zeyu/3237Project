@@ -78,26 +78,32 @@ export default class Player extends React.Component<
             this.props.id as string,
           );
 
-          const moodsSet = new Set(result.moods);
-          const candidateSongs = this.state.songs.filter(song => {
+          let resultDuration: undefined | number = parseInt(
+            result.duration,
+            10,
+          );
+          resultDuration = isNaN(resultDuration) ? undefined : resultDuration;
+          const candidateSong = this.state.songs.find(song => {
             return (
-              // For now
-              song.moods?.length && song.moods.some(mood => moodsSet.has(mood))
+              song.title === result.title &&
+              resultDuration &&
+              resultDuration === song.duration
             );
           });
 
-          if (candidateSongs.length) {
-            const randIdx = Math.floor(Math.random() * candidateSongs.length);
-            const recommendation = candidateSongs[randIdx];
-
-            await TrackPlayer.add(recommendation);
+          if (candidateSong) {
+            await TrackPlayer.add(candidateSong);
             await TrackPlayer.play();
-            this.setState({currOrLastAutoplaySong: recommendation});
+            this.setState({currOrLastAutoplaySong: candidateSong});
           } else {
             Alert.alert('No labelled songs found');
           }
         } catch (ex) {
-          console.log('Error sending song data for prediction', ex);
+          Alert.alert(
+            'Error sending song data for prediction',
+            'Is the API down maybe?',
+          );
+          console.log(ex);
         }
 
         this.props.hideLoader(resolve);

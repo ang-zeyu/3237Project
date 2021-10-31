@@ -291,7 +291,7 @@ def predict_song():
         userSongsMoods[currRow, songMoods] = 1
         currRow += 1
 
-    dummyArr = np.ones((1, NUM_MOODS))
+    dummyArr = np.ones((1, NUM_MOODS))  # Replace with prediction output
     similarities = sklearn.metrics.pairwise.cosine_similarity(dummyArr, Y=userSongsMoods, dense_output=True)
 
     closestIdx = np.argmax(similarities)
