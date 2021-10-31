@@ -6,7 +6,7 @@ pymysql.install_as_MySQLdb()
 from sqlalchemy.dialects.postgresql import JSON
 
 import numpy as np
-import sklearn
+import sklearn.metrics.pairwise
 
 app = Flask(__name__)
 
@@ -289,18 +289,19 @@ def predict_song():
     for song in userAllSongs:
         songMoods = list(map(moodToIdx, song['moods']))
         userSongsMoods[currRow, songMoods] = 1
+        currRow += 1
 
     dummyArr = np.ones((1, NUM_MOODS))
     similarities = sklearn.metrics.pairwise.cosine_similarity(dummyArr, Y=userSongsMoods, dense_output=True)
 
-    closestIdx = np.argmin(similarities)
-    print(f'Closest is {closestIdx}')
+    closestIdx = np.argmax(similarities)
 
-    dummyResponse = {
-        'moods': ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Depressive', 'Elegant', 'Passionate', 'Warm']
-    }
+    closestSongTitleAndDuration = userAllSongs[closestIdx]['title'].rsplit(sep='--', maxsplit=1)
 
-    return jsonify(dummyResponse)
+    return jsonify({
+        'title': closestSongTitleAndDuration[0],
+        'duration': closestSongTitleAndDuration[1]
+    })
 
 
 if __name__ == '__main__':
