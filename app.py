@@ -5,6 +5,9 @@ import pymysql
 pymysql.install_as_MySQLdb()
 from sqlalchemy.dialects.postgresql import JSON
 
+import numpy as np
+import sklearn
+
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:3237team18@0.0.0.0:3306/song_recommender_db'
@@ -12,6 +15,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
+
+NUM_MOODS = 8
 
 class MotionData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -243,6 +248,22 @@ def post_player_song_data():
     return jsonify(success=True)
 
 
+MOODS_TO_IDX_MAP = {
+    'Aggressive': 0,
+    'Athletic': 1,
+    'Atmospheric': 2,
+    'Celebratory': 3,
+    'Depressive': 4,
+    'Elegant': 5,
+    'Passionate': 6,
+    'Warm': 7
+}
+
+
+def moodToIdx(mood):
+    return MOODS_TO_IDX_MAP[mood]
+
+
 @app.route("/predict-song", methods=['POST'])
 def predict_song():
     gyroX = request.json['gyroX']
@@ -260,6 +281,20 @@ def predict_song():
     # Prediction code
 
     # ---------------------------
+
+    userAllSongs = PlayerSongData.query.filter(PlayerSongData.uuid == uuid).all()
+    userAllSongs = player_song_schema.dump(userAllSongs)
+    userSongsMoods = np.zeros((len(userAllSongs), NUM_MOODS))
+    currRow = 0
+    for song in userAllSongs:
+        songMoods = list(map(moodToIdx, song['moods']))
+        userSongsMoods[currRow, songMoods] = 1
+
+    dummyArr = np.ones((1, NUM_MOODS))
+    similarities = sklearn.metrics.pairwise.cosine_similarity(dummyArr, Y=userSongsMoods, dense_output=True)
+
+    closestIdx = np.argmin(similarities)
+    print(f'Closest is {closestIdx}')
 
     dummyResponse = {
         'moods': ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Depressive', 'Elegant', 'Passionate', 'Warm']
