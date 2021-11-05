@@ -24,4 +24,6 @@ export default {
     ACCEL_SCALE: 8.0 / 32768.0,
     GYRO_SCALE: 500.0 / 65536.0,
   },
+  PREDICT_LOCALHOST: 'http://192.168.56.1:8080',
+  EC2_BASE_URL: 'http://54.251.141.237:8080',
 };

@@ -17,6 +17,8 @@ import {gatherSongData, SongData} from '../utils/SongSensor';
 import {Event as TrackPlayerEvent} from 'react-native-track-player/lib/interfaces';
 import MoodIcons from '../components/MoodIcons';
 
+import constants from '../constants';
+
 const MOODS = [
   {
     name: 'Moods',
@@ -74,10 +76,20 @@ export default class Player extends React.Component<
         }
 
         try {
+          // Gather predictable songs and their moods
+          const songsAndMoods = this.state.songs
+            .filter(song => song.moods?.length)
+            .map(song => ({
+              songTitleAndDuration: this.getSongKey(song),
+              moods: song.moods as string[],
+            }));
+
           const result = await predictionSongData.sendForPrediction(
             this.props.id as string,
+            songsAndMoods,
           );
 
+          // Find the returned predicted song
           let resultDuration: undefined | number = parseInt(
             result.duration,
             10,
@@ -189,7 +201,7 @@ export default class Player extends React.Component<
       };
 
       try {
-        await fetch('http://54.251.141.237:8080/post-player-song-data', {
+        await fetch(`${constants.EC2_BASE_URL}/post-player-song-data`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -218,7 +230,7 @@ export default class Player extends React.Component<
         moods: string[];
       }[] = await (
         await fetch(
-          `http://54.251.141.237:8080/get-player-song-data/${this.props.id}`,
+          `${constants.EC2_BASE_URL}/get-player-song-data/${this.props.id}`,
         )
       ).json();
 

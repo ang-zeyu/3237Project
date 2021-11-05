@@ -41,7 +41,7 @@ export class SongData {
       uuid,
     });
     console.log(body);
-    fetch('http://54.251.141.237:8080/add-song-data', {
+    fetch(`${constants.EC2_BASE_URL}/add-song-data`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -52,11 +52,18 @@ export class SongData {
     });
   }
 
-  async sendForPrediction(uuid: string): Promise<{
+  async sendForPrediction(
+    uuid: string,
+    songsAndMoods: {
+      songTitleAndDuration: string;
+      moods: string[];
+    }[],
+  ): Promise<{
     title: string;
     duration: string;
   }> {
     const body = JSON.stringify({
+      // Sensor burst
       gyroX: this.gyroX,
       gyroY: this.gyroY,
       gyroZ: this.gyroZ,
@@ -66,10 +73,11 @@ export class SongData {
       opticalVals: this.opticalVals,
       tempVals: this.tempVals,
       humidityVals: this.humidityVals,
-      uuid,
+      uuid, // unused
+      songsAndMoods,
     });
     console.log(body);
-    return fetch('http://54.251.141.237:8080/predict-song', {
+    return fetch(`${constants.PREDICT_LOCALHOST}/predict-song`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

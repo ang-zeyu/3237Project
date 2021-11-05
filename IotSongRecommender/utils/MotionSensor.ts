@@ -72,7 +72,7 @@ export class TrainMotionData {
     } catch (ex) {
       console.log('backup failed');
     }
-    return fetch('http://54.251.141.237:8080/add-motion-data', {
+    return fetch(`${constants.EC2_BASE_URL}/add-motion-data`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
