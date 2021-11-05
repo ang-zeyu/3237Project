@@ -97,7 +97,7 @@ export default class Player extends React.Component<
           resultDuration = isNaN(resultDuration) ? undefined : resultDuration;
           const candidateSong = this.state.songs.find(song => {
             return (
-              song.title === result.title &&
+              song.filename === result.title &&
               resultDuration &&
               resultDuration === song.duration
             );
