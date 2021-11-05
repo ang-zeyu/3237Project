@@ -17,10 +17,10 @@ from predict_mood import get_mood_prediction
 import pickle
 from tensorflow.keras.models import load_model
 print('[INFO] Loading motion model...')
-motion_model = load_model('models/savedModel_stackedLSTM')
+motion_model = load_model('savedModel_stackedLSTM')
 print('[INFO] Motion model loaded.')
 print('[INFO] Loading song model...')
-song_model = pickle.load(open('models/RandomForest', 'rb'))
+song_model = pickle.load(open('RandomForest', 'rb'))
 print('[INFO] Song model loaded.')
 
 NUM_MOODS = 8
