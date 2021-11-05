@@ -1,12 +1,8 @@
 from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
-import pymysql
-pymysql.install_as_MySQLdb()
-from sqlalchemy.dialects.postgresql import JSON
-
 import numpy as np
 from sklearn.metrics import pairwise
+import pickle
+from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
@@ -14,8 +10,6 @@ app = Flask(__name__)
 from predict_mood import get_mood_prediction
 
 # Load models
-import pickle
-from tensorflow.keras.models import load_model
 print('[INFO] Loading motion model...')
 motion_model = load_model('savedModel_stackedLSTM')
 print('[INFO] Motion model loaded.')
@@ -37,7 +31,6 @@ MOODS_TO_IDX_MAP = {
 
 def moodToIdx(mood):
     return MOODS_TO_IDX_MAP[mood]
-
 
 @app.route("/test", methods=['GET'])
 def home():
