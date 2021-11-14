@@ -61,6 +61,7 @@ export class SongData {
   ): Promise<{
     title: string;
     duration: string;
+    activity: string;
   }> {
     const body = JSON.stringify({
       // Sensor burst

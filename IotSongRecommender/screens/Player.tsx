@@ -52,6 +52,9 @@ export default class Player extends React.Component<
     selectRef: React.RefObject<any>;
     currentSelectedSong?: Song;
     currentSelectedMoods?: string[];
+
+    //display
+    currentActivity: string,
   }
 > {
   constructor(props: any) {
@@ -59,6 +62,7 @@ export default class Player extends React.Component<
     this.state = {
       selectRef: React.createRef(),
       songs: [],
+      currentActivity: 'Walking',
     };
   }
 
@@ -90,6 +94,10 @@ export default class Player extends React.Component<
           );
 
           // Find the returned predicted song
+          if (result.activity) {
+            this.setState({ currentActivity: result.activity })
+          }
+
           let resultDuration: undefined | number = parseInt(
             result.duration,
             10,
@@ -287,6 +295,14 @@ export default class Player extends React.Component<
               onPress={this.startSongAutoplay}
               disabled={!this.state.songs.length}
             />
+          )}
+        </View>
+
+        <View style={{ padding:10 }}>
+          {this.state.currentActivity ? (
+            <Text>Current activity is {this.state.currentActivity} </Text>
+          ) : (
+            <Text>No activity detected!</Text>
           )}
         </View>
 
