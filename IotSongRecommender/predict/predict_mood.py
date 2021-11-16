@@ -3,7 +3,7 @@ import numpy as np
 
 # Hardcoded labels for one-hot/label encoding
 activity_cats = np.array(['Running', 'Walking', 'Working']) # hardcoded activity categories
-moods = ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Depressive', 'Elegant', 'Passionate', 'Warm'] # hardcoded mood categories
+moods = ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Melancholic', 'Elegant', 'Passionate', 'Warm'] # hardcoded mood categories
 
 ## input data as dictionary {'gyroX','gyroY','gyroZ','accelX','accelY','accelZ','opticalVals','tempVals','humidityVals','uuid'}
 ## returns mood predictions as dictionary {'mood': value }

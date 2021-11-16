@@ -29,7 +29,7 @@ const MOODS = [
       {name: 'Atmospheric'},
       {name: 'Elegant'},
       {name: 'Warm'},
-      {name: 'Depressive'},
+      {name: 'Melancholic'},
       {name: 'Celebratory'},
       {name: 'Passionate'},
     ],

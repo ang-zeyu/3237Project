@@ -36,10 +36,10 @@ export default function MoodIcons(props: {song: Song}) {
                 color="#e69138"
               />
             );
-          case 'Depressive':
+          case 'Melancholic':
             return (
               <Icon
-                key="depressive"
+                key="melancholic"
                 name="emoticon-sad"
                 size={14}
                 color="#e69138"

@@ -23,7 +23,7 @@ MOODS_TO_IDX_MAP = {
     'Athletic': 1,
     'Atmospheric': 2,
     'Celebratory': 3,
-    'Depressive': 4,
+    'Melancholic': 4,
     'Elegant': 5,
     'Passionate': 6,
     'Warm': 7
