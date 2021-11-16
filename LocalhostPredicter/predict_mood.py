@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+import pprint
+
 # Hardcoded labels for one-hot/label encoding
 activity_cats = np.array(['Running', 'Walking', 'Working']) # hardcoded activity categories
 moods = ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Melancholic', 'Elegant', 'Passionate', 'Warm'] # hardcoded mood categories
@@ -27,15 +29,21 @@ def get_mood_prediction(data, motion_model, song_model, prob=True):
     activity_prob = motion_model.predict(motion_data)
     activity = activity_cats[np.argmax(activity_prob, axis=1)][0]
 
+    print('Activity: %s' % activity)
+
     # one-hot encoding for activity
     for act in activity_cats:
         df[act] = [1] if activity==act else [0]
+
+    print(df)
 
     # Obtain mean optical, temp and humidity values
     for col in df.columns:
         if col in ['optical','temp','humidity']:
             df[col] = df[col].apply(np.mean)
-    
+
+    print(df[['optical','temp','humidity']])
+
     # predict song
     x = df[['optical', 'temp', 'humidity','Working', 'Running', 'Walking']] # follow order in ipynb
     res = {k:'' for k in moods}
@@ -43,6 +51,10 @@ def get_mood_prediction(data, motion_model, song_model, prob=True):
         pred = np.array(song_model.predict_proba(x.values))
     else:
         pred = np.array(song_model.predict(x.values))
+
+    print('prediction')
+    print(pred)
+
     for i in range(len(moods)):
         mood = moods[i]
         if prob:

@@ -36,6 +36,10 @@ def moodToIdx(mood):
 def home():
     return "<h2>CS3237 Project Team 18</h2><p>Prediction server up and running.</p>"
 
+
+from pprint import pprint
+
+
 @app.route("/predict-song", methods=['POST'])
 def predict_song():
     gyroX = request.json['gyroX']
@@ -49,6 +53,7 @@ def predict_song():
     humidityVals = request.json['humidityVals']
     # uuid = request.json['uuid']
     userAllSongs = request.json['songsAndMoods']
+    print(userAllSongs)
 
     data = {
         'gyroX': gyroX,
@@ -61,8 +66,11 @@ def predict_song():
         'temp': tempVals,
         'humidity': humidityVals,
     }
+    print(data)
 
     activity, moodPred = get_mood_prediction(data, motion_model, song_model, prob=True)
+    print('8 dimensional mood scores')
+    pprint(moodPred)
     moodArr = np.array([k for k in moodPred.values()]).reshape(1,-1) # reshape for pairwise (X.shape[1]==8)
 
     userSongsMoods = np.zeros((len(userAllSongs), NUM_MOODS))
@@ -74,9 +82,12 @@ def predict_song():
 
     similarities = pairwise.cosine_similarity(moodArr, Y=userSongsMoods, dense_output=True)
     closestIdx = np.argmax(similarities)
+    print('Cosine measure scores with user songs:')
+    print(similarities)
+    print('Closest user song:')
+    print(closestIdx)
     closestSongTitleAndDuration = userAllSongs[closestIdx]['songTitleAndDuration'].rsplit(sep='--', maxsplit=1)
 
-    print(closestSongTitleAndDuration)
     return jsonify({
         'title': closestSongTitleAndDuration[0],
         'duration': closestSongTitleAndDuration[1],
