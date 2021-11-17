@@ -9,7 +9,8 @@ import {ble} from './Ble';
 import constants from '../constants';
 import {configureMotionSensors, stopMotionSensors} from './MotionSensor';
 import {createCharacteristicUpdateListener} from './Sensor';
-const {OPTICAL_SENSOR, HUMIDITY_SENSOR} = constants;
+import {Song} from '../components/MusicChooser';
+const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR} = constants;
 
 export class SongData {
   gyroX: number[] = [];
@@ -226,4 +227,59 @@ export async function gatherSongData(
   await countdown();
   songCharacteristicsUnsub();
   console.log('Gathered song data...');
+}
+
+export async function gatherSongDataNew(sensorId: string): Promise<SongData> {
+  const data = await ble.read(
+    sensorId,
+    MOTION_SENSOR.SERVICE_UUID,
+    MOTION_SENSOR.DATA_UUID,
+  );
+
+  const songData = new SongData();
+
+  // 12 bytes * 30 of gyroscope and accelerometer data
+  for (let i = 0; i < 360; i += 12) {
+    songData.gyroX.push(
+      (data.value[i] + (data.value[i + 1] << 8)) * MOTION_SENSOR.GYRO_SCALE,
+    );
+    songData.gyroY.push(
+      (data.value[i + 2] + (data.value[i + 3] << 8)) * MOTION_SENSOR.GYRO_SCALE,
+    );
+    songData.gyroZ.push(
+      (data.value[i + 4] + (data.value[i + 5] << 8)) * MOTION_SENSOR.GYRO_SCALE,
+    );
+    songData.accelX.push(
+      (data.value[i + 6] + (data.value[i + 7] << 8)) *
+        MOTION_SENSOR.ACCEL_SCALE,
+    );
+    songData.accelY.push(
+      (data.value[i + 8] + (data.value[i + 9] << 8)) *
+        MOTION_SENSOR.ACCEL_SCALE,
+    );
+    songData.accelZ.push(
+      (data.value[i + 10] + (data.value[i + 11] << 8)) *
+        MOTION_SENSOR.ACCEL_SCALE,
+    );
+  }
+
+  // 2 bytes * 3 of optical data
+  for (let i = 360; i < 366; i += 2) {
+    const rawOpticalValue = data.value[i] + (data.value[i + 1] << 8);
+
+    const mantissa = rawOpticalValue & 0xfff;
+    const exponent = (rawOpticalValue & 0xf000) >> 12;
+    songData.opticalVals.push(0.01 * (mantissa << exponent));
+  }
+
+  // 4 bytes * 3 of temperature and humidity data
+  for (let i = 366; i < 378; i += 4) {
+    const rawTempValue = data.value[i] + (data.value[i + 1] << 8);
+    const rawHumidtyValue = data.value[i + 2] + (data.value[i + 3] << 8);
+
+    songData.tempVals.push(-40 + 165 * (rawTempValue / 65536));
+    songData.humidityVals.push(100 * (rawHumidtyValue / 65536));
+  }
+
+  return songData;
 }

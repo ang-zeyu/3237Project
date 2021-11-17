@@ -13,7 +13,7 @@ import TrackPlayer from 'react-native-track-player';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {gatherSongData, SongData} from '../utils/SongSensor';
+import { gatherSongData, gatherSongDataNew, SongData } from "../utils/SongSensor";
 import {Event as TrackPlayerEvent} from 'react-native-track-player/lib/interfaces';
 import MoodIcons from '../components/MoodIcons';
 
@@ -54,7 +54,7 @@ export default class Player extends React.Component<
     currentSelectedMoods?: string[];
 
     //display
-    currentActivity: string,
+    currentActivity: string;
   }
 > {
   constructor(props: any) {
@@ -69,10 +69,9 @@ export default class Player extends React.Component<
   recommendNextSong: () => Promise<void> = () => {
     return new Promise(resolve => {
       this.props.showLoader(async () => {
-        let predictionSongData: SongData | undefined;
-        await gatherSongData(this.props.id as string, async songData => {
-          predictionSongData = songData;
-        });
+        const predictionSongData = await gatherSongDataNew(
+          this.props.id as string,
+        );
 
         if (!predictionSongData) {
           console.error('No predictionSongData, aborting recommendation');
@@ -95,7 +94,7 @@ export default class Player extends React.Component<
 
           // Find the returned predicted song
           if (result.activity) {
-            this.setState({ currentActivity: result.activity })
+            this.setState({currentActivity: result.activity});
           }
 
           let resultDuration: undefined | number = parseInt(
@@ -298,7 +297,7 @@ export default class Player extends React.Component<
           )}
         </View>
 
-        <View style={{ padding:10 }}>
+        <View style={{padding: 10}}>
           {this.state.currentActivity ? (
             <Text>Current activity is {this.state.currentActivity} </Text>
           ) : (
