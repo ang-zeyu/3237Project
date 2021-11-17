@@ -11,7 +11,7 @@ from predict_mood import get_mood_prediction
 
 # Load models
 print('[INFO] Loading motion model...')
-motion_model = load_model('savedModel_stackedLSTM')
+motion_model = load_model('savedModel_stackedLSTM') #replace with motion_model = pickle.load(open('model.sav', 'rb'))
 print('[INFO] Motion model loaded.')
 print('[INFO] Loading song model...')
 song_model = pickle.load(open('RandomForest', 'rb'))

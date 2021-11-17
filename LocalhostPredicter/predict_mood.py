@@ -26,7 +26,7 @@ def get_mood_prediction(data, motion_model, song_model, prob=True):
     motion_data = [list(k) for k in df.iloc[:,:6].values]
     motion_data = np.array(motion_data)
     motion_data = np.array([k.T for k in motion_data]) # reshape as (1,30,6)
-    activity_prob = motion_model.predict(motion_data)
+    activity_prob = motion_model.predict(motion_data) #replace with motion_model().predict(motion_data)
     activity = activity_cats[np.argmax(activity_prob, axis=1)][0]
 
     print('Activity: %s' % activity)
