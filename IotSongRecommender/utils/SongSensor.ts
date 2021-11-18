@@ -10,7 +10,7 @@ import constants from '../constants';
 import {configureMotionSensors, stopMotionSensors} from './MotionSensor';
 import {createCharacteristicUpdateListener} from './Sensor';
 import {Song} from '../components/MusicChooser';
-const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR} = constants;
+const {OPTICAL_SENSOR, HUMIDITY_SENSOR, MOTION_SENSOR, SONG_BURST_SERVICE} = constants;
 
 export class SongData {
   gyroX: number[] = [];
@@ -230,42 +230,67 @@ export async function gatherSongData(
 }
 
 export async function gatherSongDataNew(sensorId: string): Promise<SongData> {
+  // mtu
+  const mtu = await ble.requestMTU(sensorId, 512);
+  console.log(mtu);
+
+  // Set listeners
+  await ble.write(
+    sensorId,
+    SONG_BURST_SERVICE.SERVICE_UUID,
+    SONG_BURST_SERVICE.CTRL_UUID,
+    [
+      MOTION_SENSOR.ACCEL_XYZ |
+        MOTION_SENSOR.ACCEL_RANGE_4G |
+        MOTION_SENSOR.GYRO_XYZ,
+      0,
+    ],
+  );
+
+  await new Promise(resolve => setTimeout(() => resolve(), 4000));
+
   const data = await ble.read(
     sensorId,
-    MOTION_SENSOR.SERVICE_UUID,
-    MOTION_SENSOR.DATA_UUID,
+    SONG_BURST_SERVICE.SERVICE_UUID,
+    SONG_BURST_SERVICE.DATA_UUID,
   );
+
+  await ble.write(
+    sensorId,
+    SONG_BURST_SERVICE.SERVICE_UUID,
+    SONG_BURST_SERVICE.CTRL_UUID,
+    [0, 0],
+  );
+
+  console.log(data);
 
   const songData = new SongData();
 
   // 12 bytes * 30 of gyroscope and accelerometer data
   for (let i = 0; i < 360; i += 12) {
     songData.gyroX.push(
-      (data.value[i] + (data.value[i + 1] << 8)) * MOTION_SENSOR.GYRO_SCALE,
+      (data[i] + (data[i + 1] << 8)) * MOTION_SENSOR.GYRO_SCALE,
     );
     songData.gyroY.push(
-      (data.value[i + 2] + (data.value[i + 3] << 8)) * MOTION_SENSOR.GYRO_SCALE,
+      (data[i + 2] + (data[i + 3] << 8)) * MOTION_SENSOR.GYRO_SCALE,
     );
     songData.gyroZ.push(
-      (data.value[i + 4] + (data.value[i + 5] << 8)) * MOTION_SENSOR.GYRO_SCALE,
+      (data[i + 4] + (data[i + 5] << 8)) * MOTION_SENSOR.GYRO_SCALE,
     );
     songData.accelX.push(
-      (data.value[i + 6] + (data.value[i + 7] << 8)) *
-        MOTION_SENSOR.ACCEL_SCALE,
+      (data[i + 6] + (data[i + 7] << 8)) * MOTION_SENSOR.ACCEL_SCALE,
     );
     songData.accelY.push(
-      (data.value[i + 8] + (data.value[i + 9] << 8)) *
-        MOTION_SENSOR.ACCEL_SCALE,
+      (data[i + 8] + (data[i + 9] << 8)) * MOTION_SENSOR.ACCEL_SCALE,
     );
     songData.accelZ.push(
-      (data.value[i + 10] + (data.value[i + 11] << 8)) *
-        MOTION_SENSOR.ACCEL_SCALE,
+      (data[i + 10] + (data[i + 11] << 8)) * MOTION_SENSOR.ACCEL_SCALE,
     );
   }
 
   // 2 bytes * 3 of optical data
   for (let i = 360; i < 366; i += 2) {
-    const rawOpticalValue = data.value[i] + (data.value[i + 1] << 8);
+    const rawOpticalValue = data[i] + (data[i + 1] << 8);
 
     const mantissa = rawOpticalValue & 0xfff;
     const exponent = (rawOpticalValue & 0xf000) >> 12;
@@ -274,8 +299,8 @@ export async function gatherSongDataNew(sensorId: string): Promise<SongData> {
 
   // 4 bytes * 3 of temperature and humidity data
   for (let i = 366; i < 378; i += 4) {
-    const rawTempValue = data.value[i] + (data.value[i + 1] << 8);
-    const rawHumidtyValue = data.value[i + 2] + (data.value[i + 3] << 8);
+    const rawTempValue = data[i] + (data[i + 1] << 8);
+    const rawHumidtyValue = data[i + 2] + (data[i + 3] << 8);
 
     songData.tempVals.push(-40 + 165 * (rawTempValue / 65536));
     songData.humidityVals.push(100 * (rawHumidtyValue / 65536));

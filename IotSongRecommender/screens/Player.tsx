@@ -13,7 +13,7 @@ import TrackPlayer from 'react-native-track-player';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import SectionedMultiSelect from 'react-native-sectioned-multi-select';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import { gatherSongData, gatherSongDataNew, SongData } from "../utils/SongSensor";
+import {gatherSongData, gatherSongDataNew, SongData} from '../utils/SongSensor';
 import {Event as TrackPlayerEvent} from 'react-native-track-player/lib/interfaces';
 import MoodIcons from '../components/MoodIcons';
 
@@ -69,9 +69,14 @@ export default class Player extends React.Component<
   recommendNextSong: () => Promise<void> = () => {
     return new Promise(resolve => {
       this.props.showLoader(async () => {
-        const predictionSongData = await gatherSongDataNew(
-          this.props.id as string,
-        );
+        let predictionSongData: any;
+        try {
+          predictionSongData = await gatherSongDataNew(this.props.id as string);
+        } catch (e) {
+          console.error('err predictionSongData, aborting recommendation');
+          console.error(e);
+          return;
+        }
 
         if (!predictionSongData) {
           console.error('No predictionSongData, aborting recommendation');
@@ -115,6 +120,7 @@ export default class Player extends React.Component<
             await TrackPlayer.play();
             this.setState({currOrLastAutoplaySong: candidateSong});
           } else {
+            this.stopSongAutoplay();
             Alert.alert('No labelled songs found');
           }
         } catch (ex) {
@@ -122,6 +128,7 @@ export default class Player extends React.Component<
             'Error sending song data for prediction',
             'Is the API down maybe?',
           );
+          this.stopSongAutoplay();
           console.log(ex);
         }
 
