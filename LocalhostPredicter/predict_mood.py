@@ -10,7 +10,7 @@ moods = ['Aggressive', 'Athletic', 'Atmospheric', 'Celebratory', 'Melancholic', 
 ## input data as dictionary {'gyroX','gyroY','gyroZ','accelX','accelY','accelZ','opticalVals','tempVals','humidityVals','uuid'}
 ## returns mood predictions as dictionary {'mood': value }
 ## returns confidence scores if prob=True else binary values
-def get_mood_prediction(data, motion_model, song_model, prob=True):
+def get_mood_prediction(data, motion_model, song_model):
 
     # create df
     df_dict = {k:[data[k]] for k in data}
@@ -29,38 +29,30 @@ def get_mood_prediction(data, motion_model, song_model, prob=True):
     activity_prob = motion_model.predict(motion_data) #replace with motion_model().predict(motion_data)
     activity = activity_cats[np.argmax(activity_prob, axis=1)][0]
 
+    print('------------------------------')
     print('Activity: %s' % activity)
 
     # one-hot encoding for activity
     for act in activity_cats:
         df[act] = [1] if activity==act else [0]
 
-    print(df)
-
     # Obtain mean optical, temp and humidity values
     for col in df.columns:
         if col in ['optical','temp','humidity']:
             df[col] = df[col].apply(np.mean)
 
-    print(df[['optical','temp','humidity']])
+    print('------------------------------')
+    print(df[['optical','temp','humidity','Working', 'Running', 'Walking']])
 
     # predict song
     x = df[['optical', 'temp', 'humidity','Working', 'Running', 'Walking']] # follow order in ipynb
     res = {k:'' for k in moods}
-    if prob:
-        pred = np.array(song_model.predict_proba(x.values))
-    else:
-        pred = np.array(song_model.predict(x.values))
-
-    print('prediction')
-    print(pred)
+    pred = np.array(song_model.predict_proba(x.values))
 
     for i in range(len(moods)):
         mood = moods[i]
-        if prob:
-            res[mood] = pred[i,:,1][0] - pred[i+len(moods),:,1][0] # predict_proba returns shape (n_features, n_samples, probs)
-        else:
-            res[mood] = pred[:,i][0] - pred[:,i+len(moods)][0] # predict returns shape (n_samples, n_features)
+        # predict_proba returns shape (n_features, n_samples, probs)
+        res[mood] = pred[i,:,1][0] - pred[i+len(moods),:,1][0]
 
     return activity, res
     

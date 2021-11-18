@@ -68,7 +68,8 @@ def predict_song():
     }
     print(data)
 
-    activity, moodPred = get_mood_prediction(data, motion_model, song_model, prob=True)
+    activity, moodPred = get_mood_prediction(data, motion_model, song_model)
+    print('------------------------------')
     print('8 dimensional mood scores')
     pprint(moodPred)
     moodArr = np.array([k for k in moodPred.values()]).reshape(1,-1) # reshape for pairwise (X.shape[1]==8)
@@ -82,10 +83,13 @@ def predict_song():
 
     similarities = pairwise.cosine_similarity(moodArr, Y=userSongsMoods, dense_output=True)
     closestIdx = np.argmax(similarities)
+    print('------------------------------')
     print('Cosine measure scores with user songs:')
     print(similarities)
+    print('------------------------------')
     print('Closest user song:')
-    print(closestIdx)
+    print('  idx: ', closestIdx)
+    print('  song: ', userAllSongs[closestIdx]['songTitleAndDuration'])
     closestSongTitleAndDuration = userAllSongs[closestIdx]['songTitleAndDuration'].rsplit(sep='--', maxsplit=1)
 
     return jsonify({
